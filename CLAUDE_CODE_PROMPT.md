@@ -179,6 +179,7 @@ CREATE TABLE equipment (
   description TEXT,
   
   category_id UUID REFERENCES categories(id),
+  model_id UUID REFERENCES equipment_models(id),
   serial_number VARCHAR(100),
   internal_code VARCHAR(50) UNIQUE,
   
@@ -197,7 +198,19 @@ CREATE TABLE equipment (
   
   current_location_id UUID REFERENCES locations(id),
   current_holder_id UUID REFERENCES users(id),
-  home_location_id UUID REFERENCES locations(id),  -- Kde "patrí"
+  home_location_id UUID REFERENCES locations(id),
+  
+  -- Príslušenstvo
+  is_main_item BOOLEAN DEFAULT true,
+  parent_equipment_id UUID REFERENCES equipment(id),
+  is_transferable BOOLEAN DEFAULT true,
+  
+  -- Kalibrácia
+  requires_calibration BOOLEAN DEFAULT false,
+  calibration_interval_days INTEGER,
+  last_calibration_date DATE,
+  next_calibration_date DATE,
+  calibration_status VARCHAR(20),  -- 'valid', 'expiring', 'expired', 'not_required'
   
   next_maintenance_date DATE,
   last_maintenance_date DATE,
@@ -207,6 +220,96 @@ CREATE TABLE equipment (
   
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP
+);
+
+-- Výrobcovia
+CREATE TABLE manufacturers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(100) NOT NULL,
+  website VARCHAR(255),
+  support_email VARCHAR(255),
+  support_phone VARCHAR(50),
+  logo_url VARCHAR(500),
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Modely zariadení
+CREATE TABLE equipment_models (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  manufacturer_id UUID REFERENCES manufacturers(id),
+  category_id UUID REFERENCES categories(id),
+  name VARCHAR(100) NOT NULL,
+  full_name VARCHAR(200),
+  default_calibration_interval_days INTEGER,
+  requires_calibration BOOLEAN DEFAULT false,
+  manual_url VARCHAR(500),
+  specifications JSONB,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Fotky zariadenia
+CREATE TABLE equipment_photos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  equipment_id UUID REFERENCES equipment(id) ON DELETE CASCADE NOT NULL,
+  photo_type VARCHAR(20) NOT NULL,  -- 'main', 'detail', 'label', 'damage', 'calibration'
+  file_url VARCHAR(500) NOT NULL,
+  thumbnail_url VARCHAR(500),
+  local_path VARCHAR(500),
+  is_synced BOOLEAN DEFAULT false,
+  description TEXT,
+  sort_order INTEGER DEFAULT 0,
+  uploaded_by UUID REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Typy príslušenstva
+CREATE TABLE accessory_types (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(100) NOT NULL,
+  icon VARCHAR(50),
+  default_for_categories UUID[],
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Kalibrácie
+CREATE TABLE calibrations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  equipment_id UUID REFERENCES equipment(id) NOT NULL,
+  calibration_type VARCHAR(20) NOT NULL,  -- 'initial', 'periodic', 'after_repair', 'verification'
+  calibration_date DATE NOT NULL,
+  valid_until DATE NOT NULL,
+  next_calibration_date DATE,
+  performed_by_type VARCHAR(20),  -- 'internal', 'external', 'manufacturer'
+  performed_by_name VARCHAR(200),
+  calibration_lab VARCHAR(200),
+  certificate_number VARCHAR(100),
+  certificate_url VARCHAR(500),
+  result VARCHAR(20) NOT NULL,  -- 'passed', 'passed_with_adjustment', 'failed'
+  cost DECIMAL(10, 2),
+  notes TEXT,
+  attachments JSONB,
+  recorded_by UUID REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Nastavenia upozornení na kalibrácie
+CREATE TABLE calibration_reminder_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  scope_type VARCHAR(20) NOT NULL,  -- 'global', 'category', 'equipment'
+  category_id UUID REFERENCES categories(id),
+  equipment_id UUID REFERENCES equipment(id),
+  days_before INTEGER[] DEFAULT '{30, 14, 7, 1}',
+  notify_holder BOOLEAN DEFAULT true,
+  notify_manager BOOLEAN DEFAULT true,
+  notify_users UUID[],
+  notify_push BOOLEAN DEFAULT true,
+  notify_email BOOLEAN DEFAULT true,
+  is_active BOOLEAN DEFAULT true,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Tagy (QR, RFID, Barcode)
@@ -540,6 +643,57 @@ DELETE /api/equipment/{id}          # Zmazať [admin+]
 GET    /api/equipment/{id}/history  # História (checkouts, maintenance)
 POST   /api/equipment/bulk-import   # Hromadný import [manager+]
 GET    /api/equipment/export        # Export CSV/Excel [manager+]
+
+# Fotky
+GET    /api/equipment/{id}/photos
+POST   /api/equipment/{id}/photos
+DELETE /api/equipment/{id}/photos/{photo_id}
+POST   /api/photos/sync             # Sync offline fotiek
+
+# Príslušenstvo
+GET    /api/equipment/{id}/accessories
+POST   /api/equipment/{id}/accessories
+DELETE /api/equipment/{id}/accessories/{acc_id}
+```
+
+### Onboarding (pridávanie náradia)
+```
+POST   /api/onboarding/start                      # Začať onboarding session
+POST   /api/onboarding/{session}/scan             # Krok 1: Skenovanie tagu
+POST   /api/onboarding/{session}/photos           # Krok 2: Upload fotiek
+POST   /api/onboarding/{session}/details          # Krok 3: Základné info
+POST   /api/onboarding/{session}/accessories      # Krok 4: Príslušenstvo
+POST   /api/onboarding/{session}/calibration      # Krok 5: Kalibrácia
+POST   /api/onboarding/{session}/complete         # Dokončiť
+```
+
+### Výrobcovia a Modely
+```
+GET    /api/manufacturers
+POST   /api/manufacturers
+GET    /api/manufacturers/{id}/models
+GET    /api/models?category_id={}&manufacturer_id={}
+POST   /api/models
+GET    /api/accessory-types
+```
+
+### Kalibrácie
+```
+# CRUD
+GET    /api/equipment/{id}/calibrations           # História kalibrácií
+POST   /api/equipment/{id}/calibrations           # Pridať kalibráciu
+PUT    /api/calibrations/{id}                     # Upraviť
+POST   /api/calibrations/{id}/certificate         # Upload certifikátu
+
+# Dashboard a reporting
+GET    /api/calibrations/dashboard                # Štatistiky a prehľad
+GET    /api/calibrations/due?status={}&days={}    # Zariadenia na kalibráciu
+GET    /api/calibrations/export?format={}         # Export plánu
+
+# Nastavenia upozornení
+GET    /api/calibrations/reminder-settings
+POST   /api/calibrations/reminder-settings
+GET    /api/calibrations/my-notifications
 ```
 
 ### Check-out / Check-in
@@ -707,8 +861,14 @@ WEB APP
   Equipment - Create        -       -        ✅      ✅      ✅
   Equipment - Edit          -       -        ✅      ✅      ✅
   Equipment - Delete        -       -        -       ✅      ✅
+  Equipment - Onboard       -       -        ✅      ✅      ✅
+  Equipment - Add Photos    ✅      ✅       ✅      ✅      ✅
+  Accessories - Manage      -       -        ✅      ✅      ✅
   QR/Tags - Manage          -       -        ✅      ✅      ✅
   Print Labels              -       -        ✅      ✅      ✅
+  Calibrations - View       ✅      ✅       ✅      ✅      ✅
+  Calibrations - Create     -       ✅       ✅      ✅      ✅
+  Calibrations - Settings   -       -        ✅      ✅      ✅
   Users - View Team         -       ✅       ✅      ✅      ✅
   Users - Create            -       -        ✅      ✅      ✅
   Users - Manage Roles      -       -        -       ✅      ✅
@@ -738,12 +898,39 @@ WEB APP
 
 🏠 HOME (Dashboard)
 ├── Moje náradie (počet, stav)
-├── Notifikácie
+├── Notifikácie (vrátane kalibrácií)
 ├── Quick actions
 │   ├── Skenovať
 │   ├── Check-out
-│   └── Check-in
+│   ├── Check-in
+│   └── [Manager] Pridať náradie
 └── [Leader] Náradie tímu
+
+➕ ONBOARDING WIZARD [Manager+]
+├── Krok 1: Skenovanie
+│   ├── QR kód
+│   ├── Čiarový kód
+│   ├── NFC tag
+│   └── Manuálne zadanie
+├── Krok 2: Fotografie (1-5)
+│   ├── Hlavná [povinná]
+│   ├── Detail, Štítok, Poškodenie
+│   └── Offline queue pre sync
+├── Krok 3: Základné info
+│   ├── Názov, Kategória
+│   ├── Výrobca (autocomplete)
+│   ├── Model (autocomplete)
+│   └── Sériové číslo, Kód
+├── Krok 4: Príslušenstvo
+│   ├── Batérie, Nabíjačky, Kufríky
+│   ├── Vlastný QR pre každé
+│   └── Zoskupenie pod hlavné
+├── Krok 5: Kalibrácia
+│   ├── Vyžaduje? [toggle]
+│   ├── Interval
+│   ├── Posledná kalibrácia
+│   └── Certifikát [foto]
+└── Krok 6: Súhrn + Dokončenie
 
 📷 SCANNER
 ├── Camera preview
@@ -870,6 +1057,26 @@ WEB APP
 ├── Nadchádzajúce
 ├── História
 └── Štatistiky
+
+📐 KALIBRÁCIE
+├── Dashboard
+│   ├── Štatistiky (platné/končiace/expirované)
+│   ├── Graf: Plán po mesiacoch
+│   └── Kritické (vyžadujú pozornosť)
+├── Zoznam zariadení
+│   ├── Filter: stav, kategória, obdobie
+│   ├── Tabuľka s akciami
+│   └── Bulk export
+├── Pridať kalibráciu
+│   ├── Typ, Dátum, Platnosť
+│   ├── Laboratórium, Certifikát
+│   ├── Výsledok, Náklady
+│   └── Upload certifikátu
+├── Nastavenia upozornení
+│   ├── Globálne
+│   ├── Per kategória
+│   └── Per zariadenie
+└── Export plánu (PDF/Excel)
 
 👥 POUŽÍVATELIA
 ├── Zoznam
