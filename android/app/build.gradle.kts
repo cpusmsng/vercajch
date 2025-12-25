@@ -35,7 +35,9 @@ android {
             )
         }
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000/api\"")
+            // Use production API for testing on physical devices
+            // For emulator testing, change to: "http://10.0.2.2:8000/api"
+            buildConfigField("String", "API_BASE_URL", "\"https://equip.spp-d.sk/api\"")
         }
     }
 
