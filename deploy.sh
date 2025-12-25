@@ -155,13 +155,13 @@ create_admin() {
     print_msg "Creating superadmin user..." "$BLUE"
     docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec backend python -c "
 import asyncio
-from app.core.database import async_session_maker
+from app.core.database import async_session_factory
 from app.models.user import User, Role
 from app.core.security import get_password_hash
 from sqlalchemy import select
 
 async def create_admin():
-    async with async_session_maker() as session:
+    async with async_session_factory() as session:
         # Get or create superadmin role
         result = await session.execute(select(Role).where(Role.name == 'superadmin'))
         role = result.scalar_one_or_none()
