@@ -47,7 +47,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - ENVIRONMENT=${ENVIRONMENT:-production}
-      - CORS_ORIGINS=https://equip.spp-d.sk,http://localhost:3000
+      - CORS_ORIGINS=["https://equip.spp-d.sk","http://localhost:3000","http://localhost:3010"]
       - APP_DOMAIN=spp-d.sk
       - QR_BASE_URL=https://equip.spp-d.sk/scan
     depends_on:
