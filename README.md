@@ -86,7 +86,7 @@ cp .env.example .env
 
 ### URLs po spustení
 
-- **Web aplikácia:** http://localhost:3000
+- **Web aplikácia:** http://localhost:3001
 - **API:** http://localhost:8001
 - **API Docs (Swagger):** http://localhost:8001/docs
 - **API Docs (ReDoc):** http://localhost:8001/redoc
