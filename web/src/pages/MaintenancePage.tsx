@@ -291,7 +291,7 @@ export default function MaintenancePage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {typeLabels[item.maintenance_type] || item.maintenance_type}
+                      {item.maintenance_type ? typeLabels[item.maintenance_type] || item.maintenance_type : '-'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 max-w-xs truncate">

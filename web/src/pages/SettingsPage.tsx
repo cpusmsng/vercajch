@@ -379,6 +379,8 @@ function NotificationSettings() {
 }
 
 function PrintingSettings() {
+  const [showPrinterModal, setShowPrinterModal] = useState(false)
+
   const { data: printers } = useQuery({
     queryKey: ['printers'],
     queryFn: async () => {
