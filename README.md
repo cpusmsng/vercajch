@@ -66,23 +66,26 @@ cp .env.example .env
 
 ### Príkazy deploy.sh
 
-| Príkaz | Popis |
-|--------|-------|
-| `./deploy.sh start` | Štart služieb |
-| `./deploy.sh stop` | Zastavenie služieb |
-| `./deploy.sh restart` | Reštart služieb |
-| `./deploy.sh build` | Build Docker obrazov |
-| `./deploy.sh up` | Build a štart služieb |
-| `./deploy.sh logs` | Zobrazenie logov (všetky) |
-| `./deploy.sh logs backend` | Logy konkrétnej služby |
-| `./deploy.sh status` | Stav služieb |
-| `./deploy.sh migrate` | Spustenie DB migrácií |
-| `./deploy.sh backup` | Záloha databázy |
-| `./deploy.sh restore <file>` | Obnovenie zo zálohy |
-| `./deploy.sh create-admin` | Vytvorenie admin účtu |
-| `./deploy.sh dev` | Spustenie v dev móde |
-| `./deploy.sh clean` | Vymazanie všetkého |
-| `./deploy.sh help` | Nápoveda |
+```bash
+# Prvé spustenie
+./deploy.sh up
+
+# Po spustení vytvor admin účet
+./deploy.sh create-admin
+
+# Ďalšie príkazy
+./deploy.sh start          # Štart služieb
+./deploy.sh stop           # Zastavenie
+./deploy.sh restart        # Reštart
+./deploy.sh logs           # Všetky logy
+./deploy.sh logs backend   # Len backend logy
+./deploy.sh status         # Stav služieb
+./deploy.sh backup         # Záloha databázy
+./deploy.sh migrate        # Spustenie migrácií
+./deploy.sh dev            # Development mód
+./deploy.sh clean          # Vymazanie všetkého
+./deploy.sh help           # Nápoveda
+```
 
 ### URLs po spustení
 
@@ -141,8 +144,8 @@ vercajch/
 ## API Dokumentácia
 
 Po spustení backendu je dokumentácia dostupná na:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+- Swagger UI: http://localhost:8001/docs
+- ReDoc: http://localhost:8001/redoc
 
 ## Licencia
 
