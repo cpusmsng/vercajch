@@ -456,6 +456,21 @@ function PrintingSettings() {
         )}
       </div>
 
+      {showPrinterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Pridať tlačiareň</h3>
+            <p className="text-gray-500 mb-4">Funkcia bude dostupná v ďalšej verzii.</p>
+            <button
+              onClick={() => setShowPrinterModal(false)}
+              className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg"
+            >
+              Zavrieť
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">
           Šablóny štítkov
