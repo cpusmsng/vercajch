@@ -120,4 +120,9 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
+    useBuildCache = false
+    arguments {
+        arg("dagger.fastInit", "enabled")
+        arg("dagger.hilt.android.internal.disableAndroidSuperclassValidation", "true")
+    }
 }
