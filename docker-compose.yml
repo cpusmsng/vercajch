@@ -75,7 +75,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "3001:80"
+      - "3010:80"
     restart: unless-stopped
 
   # Nginx Reverse Proxy (for production with SSL)
