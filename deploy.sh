@@ -163,10 +163,10 @@ from sqlalchemy import select
 async def create_admin():
     async with async_session_factory() as session:
         # Get or create superadmin role
-        result = await session.execute(select(Role).where(Role.name == 'superadmin'))
+        result = await session.execute(select(Role).where(Role.code == 'superadmin'))
         role = result.scalar_one_or_none()
         if not role:
-            role = Role(name='superadmin', description='Super Administrator')
+            role = Role(code='superadmin', name='Super Administrator', description='Full system access', is_system_role=True)
             session.add(role)
             await session.commit()
             await session.refresh(role)
@@ -180,10 +180,12 @@ async def create_admin():
         # Create admin user
         admin = User(
             email='admin@spp-d.sk',
-            hashed_password=get_password_hash('admin123'),
+            password_hash=get_password_hash('admin123'),
             full_name='System Administrator',
             role_id=role.id,
-            is_active=True
+            is_active=True,
+            can_access_web=True,
+            can_access_mobile=True
         )
         session.add(admin)
         await session.commit()
