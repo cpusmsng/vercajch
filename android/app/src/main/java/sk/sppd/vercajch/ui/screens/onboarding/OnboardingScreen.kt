@@ -75,7 +75,7 @@ fun OnboardingScreen(
         ) {
             // Progress indicator
             LinearProgressIndicator(
-                progress = { (uiState.currentStep.toFloat()) / 6f },
+                progress = (uiState.currentStep.toFloat()) / 6f,
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -340,6 +340,7 @@ fun Step2Photos(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Step3Details(
     name: String,
