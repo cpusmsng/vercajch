@@ -94,9 +94,9 @@ status() {
     docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME ps
     echo ""
     print_msg "Service URLs:" "$GREEN"
-    echo "  - API:     http://localhost:8000"
-    echo "  - API Docs: http://localhost:8000/docs"
-    echo "  - Web:     http://localhost:80"
+    echo "  - API:     http://localhost:8001"
+    echo "  - API Docs: http://localhost:8001/docs"
+    echo "  - Web:     http://localhost:3000"
     echo ""
 }
 
