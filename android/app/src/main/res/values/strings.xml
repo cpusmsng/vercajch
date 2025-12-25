@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vercajch</string>
+    <string name="login">Prihlásiť sa</string>
+    <string name="email">Email</string>
+    <string name="password">Heslo</string>
+    <string name="scan">Skenovať</string>
+    <string name="equipment">Náradie</string>
+    <string name="transfers">Transfery</string>
+    <string name="profile">Profil</string>
+    <string name="logout">Odhlásiť sa</string>
+    <string name="search">Hľadať</string>
+    <string name="camera_permission">Povolenie kamery</string>
+    <string name="camera_permission_required">Pre skenovanie QR kódov je potrebné povolenie kamery</string>
+    <string name="grant_permission">Povoliť</string>
+</resources>

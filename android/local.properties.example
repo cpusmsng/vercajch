@@ -1,0 +1,11 @@
+# This file should not be committed to git
+# Copy to local.properties and update with your SDK path
+
+# Example for Linux:
+sdk.dir=/home/username/Android/Sdk
+
+# Example for macOS:
+# sdk.dir=/Users/username/Library/Android/sdk
+
+# Example for Windows:
+# sdk.dir=C\:\\Users\\username\\AppData\\Local\\Android\\Sdk
