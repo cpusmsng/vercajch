@@ -6,7 +6,6 @@ import {
   Bell,
   Printer,
   Shield,
-  Database,
   Save,
   Check,
   X,
@@ -78,7 +77,7 @@ function GeneralSettings() {
   })
   const [saved, setSaved] = useState(false)
 
-  const { data: systemSettings, isLoading } = useQuery({
+  useQuery({
     queryKey: ['settings', 'general'],
     queryFn: async () => {
       const response = await api.get('/settings')
@@ -380,9 +379,6 @@ function NotificationSettings() {
 }
 
 function PrintingSettings() {
-  const queryClient = useQueryClient()
-  const [showPrinterModal, setShowPrinterModal] = useState(false)
-
   const { data: printers } = useQuery({
     queryKey: ['printers'],
     queryFn: async () => {

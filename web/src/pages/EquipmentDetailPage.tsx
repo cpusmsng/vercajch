@@ -8,7 +8,6 @@ import {
   Edit,
   MapPin,
   User,
-  Calendar,
   Gauge,
   History,
   Image,

@@ -2,9 +2,8 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
-import type { CalibrationDashboard, CalibrationDueItem } from '../types'
+import type { CalibrationDashboard } from '../types'
 import {
-  Gauge,
   AlertTriangle,
   Download,
   Settings,
@@ -17,7 +16,7 @@ export default function CalibrationsPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'list'>('dashboard')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
-  const { data: dashboard, isLoading } = useQuery({
+  const { data: dashboard } = useQuery({
     queryKey: ['calibrations', 'dashboard'],
     queryFn: async () => {
       const response = await api.get<CalibrationDashboard>(

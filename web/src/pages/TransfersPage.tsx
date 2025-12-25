@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
 import type { TransferRequest, Transfer } from '../types'
-import { ArrowLeftRight, Clock, Check, X, Eye, ChevronRight } from 'lucide-react'
+import { ArrowLeftRight, Clock, Check, X, Eye } from 'lucide-react'
 
 export default function TransfersPage() {
   const [activeTab, setActiveTab] = useState<

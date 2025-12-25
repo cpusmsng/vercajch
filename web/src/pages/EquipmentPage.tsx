@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
-import type { Equipment, Category, Location, PaginatedResponse } from '../types'
+import type { Equipment, Category, PaginatedResponse } from '../types'
 import {
   Search,
   Plus,
@@ -54,14 +54,6 @@ export default function EquipmentPage() {
     { value: 'maintenance', label: 'V údržbe' },
     { value: 'retired', label: 'Vyradené' },
   ]
-
-  const conditionLabels: Record<string, string> = {
-    new: 'Nové',
-    good: 'Dobré',
-    fair: 'Opotrebované',
-    poor: 'Zlé',
-    broken: 'Poškodené',
-  }
 
   const statusLabels: Record<string, string> = {
     available: 'Dostupné',

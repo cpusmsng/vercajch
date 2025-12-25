@@ -4,10 +4,8 @@ import api from '../services/api'
 import {
   Wrench,
   AlertTriangle,
-  Clock,
   CheckCircle,
   ArrowRight,
-  Gauge,
   ArrowLeftRight,
   ClipboardList,
 } from 'lucide-react'

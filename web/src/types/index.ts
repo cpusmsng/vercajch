@@ -3,6 +3,7 @@ export interface User {
   email: string
   full_name: string
   phone?: string
+  employee_id?: string
   employee_number?: string
   role_id?: string
   role?: Role
@@ -10,11 +11,11 @@ export interface User {
   department?: Department
   manager_id?: string
   is_active: boolean
-  can_access_web: boolean
-  can_access_mobile: boolean
+  can_access_web?: boolean
+  can_access_mobile?: boolean
   avatar_url?: string
   last_login_at?: string
-  created_at: string
+  created_at?: string
   permissions?: string[]
 }
 
@@ -35,26 +36,33 @@ export interface Category {
   id: string
   name: string
   code?: string
+  description?: string
+  parent_id?: string
   parent_category_id?: string
   default_maintenance_interval_days?: number
-  requires_certification: boolean
-  transfer_requires_approval: boolean
+  default_calibration_interval_days?: number
+  requires_certification?: boolean
+  requires_calibration?: boolean
+  transfer_requires_approval?: boolean
   icon?: string
   color?: string
+  equipment_count?: number
   children?: Category[]
 }
 
 export interface Location {
   id: string
   name: string
-  type: 'warehouse' | 'project' | 'vehicle' | 'other'
+  type?: 'warehouse' | 'project' | 'vehicle' | 'other'
   code?: string
   address?: string
   gps_lat?: number
   gps_lng?: number
+  parent_id?: string
   parent_location_id?: string
   responsible_user_id?: string
-  is_active: boolean
+  is_active?: boolean
+  equipment_count?: number
   children?: Location[]
 }
 
@@ -237,9 +245,10 @@ export interface MaintenanceRecord {
   id: string
   equipment_id: string
   equipment?: Equipment
-  type: 'scheduled' | 'repair' | 'inspection' | 'calibration'
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
-  priority: 'low' | 'normal' | 'high' | 'urgent'
+  type?: 'scheduled' | 'repair' | 'inspection' | 'calibration'
+  maintenance_type?: 'preventive' | 'corrective' | 'inspection'
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'scheduled'
+  priority?: 'low' | 'normal' | 'high' | 'urgent'
   title?: string
   description?: string
   scheduled_date?: string
@@ -253,7 +262,7 @@ export interface MaintenanceRecord {
   vendor?: string
   next_maintenance_date?: string
   notes?: string
-  created_at: string
+  created_at?: string
 }
 
 export interface Notification {

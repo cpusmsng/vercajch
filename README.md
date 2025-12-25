@@ -41,7 +41,7 @@ Vercajch je full-stack riešenie pozostávajúce z:
 - Python 3.11+ (pre vývoj)
 - Android Studio (pre Android vývoj)
 
-### Spustenie s Docker
+### Nasadenie pomocou deploy.sh
 
 ```bash
 # Klonovanie repozitára
@@ -52,15 +52,46 @@ cd vercajch
 cp .env.example .env
 # Upravte .env podľa potreby
 
-# Spustenie všetkých služieb
-docker-compose up -d
+# Prvé spustenie (build + start)
+./deploy.sh up
 
-# Aplikácia bude dostupná na:
-# - API: http://localhost:8000
-# - Web: http://localhost:80
+# Vytvorenie admin účtu
+./deploy.sh create-admin
+# Email: admin@spp-d.sk
+# Heslo: admin123
+
+# Spustenie migrácií databázy
+./deploy.sh migrate
 ```
 
-### Vývoj
+### Príkazy deploy.sh
+
+| Príkaz | Popis |
+|--------|-------|
+| `./deploy.sh start` | Štart služieb |
+| `./deploy.sh stop` | Zastavenie služieb |
+| `./deploy.sh restart` | Reštart služieb |
+| `./deploy.sh build` | Build Docker obrazov |
+| `./deploy.sh up` | Build a štart služieb |
+| `./deploy.sh logs` | Zobrazenie logov (všetky) |
+| `./deploy.sh logs backend` | Logy konkrétnej služby |
+| `./deploy.sh status` | Stav služieb |
+| `./deploy.sh migrate` | Spustenie DB migrácií |
+| `./deploy.sh backup` | Záloha databázy |
+| `./deploy.sh restore <file>` | Obnovenie zo zálohy |
+| `./deploy.sh create-admin` | Vytvorenie admin účtu |
+| `./deploy.sh dev` | Spustenie v dev móde |
+| `./deploy.sh clean` | Vymazanie všetkého |
+| `./deploy.sh help` | Nápoveda |
+
+### URLs po spustení
+
+- **Web aplikácia:** http://localhost:80
+- **API:** http://localhost:8000
+- **API Docs (Swagger):** http://localhost:8000/docs
+- **API Docs (ReDoc):** http://localhost:8000/redoc
+
+## Vývoj
 
 ```bash
 # Backend
@@ -102,6 +133,7 @@ vercajch/
 │       └── src/
 │           └── main/
 │               └── java/sk/sppd/vercajch/
+├── deploy.sh          # Deployment script
 ├── docker-compose.yml
 └── README.md
 ```
@@ -114,4 +146,4 @@ Po spustení backendu je dokumentácia dostupná na:
 
 ## Licencia
 
-
+Proprietárny softvér - SPP - distribúcia, a.s.
