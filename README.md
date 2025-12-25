@@ -114,4 +114,4 @@ Po spustení backendu je dokumentácia dostupná na:
 
 ## Licencia
 
-Proprietárny softvér - SPP - distribúcia, a.s.
+
