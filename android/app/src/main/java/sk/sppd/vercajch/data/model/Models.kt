@@ -8,23 +8,26 @@ data class User(
     val id: String,
     val email: String,
     @SerialName("full_name") val fullName: String?,
-    @SerialName("employee_id") val employeeId: String?,
-    val phone: String?,
-    @SerialName("is_active") val isActive: Boolean,
-    val role: Role?,
-    val department: Department?
+    @SerialName("employee_number") val employeeNumber: String? = null,
+    val phone: String? = null,
+    @SerialName("is_active") val isActive: Boolean = true,
+    val role: Role? = null,
+    val department: Department? = null
 )
 
 @Serializable
 data class Role(
     val id: String,
-    val name: String
+    val name: String,
+    val code: String? = null,
+    val description: String? = null
 )
 
 @Serializable
 data class Department(
     val id: String,
-    val name: String
+    val name: String,
+    val code: String? = null
 )
 
 @Serializable

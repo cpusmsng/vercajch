@@ -3,7 +3,6 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -17,26 +16,26 @@ from app.core.security import (
     verify_refresh_token,
 )
 from app.models.user import User
-from app.schemas.auth import Token, Login, PasswordChange
+from app.schemas.auth import Token, Login, LoginResponse, PasswordChange
 from app.schemas.user import UserResponse, UserWithPermissions
 
 router = APIRouter()
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=LoginResponse)
 async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    login_data: Login,
     db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """Login with email and password"""
     result = await db.execute(
         select(User)
-        .options(selectinload(User.role))
-        .where(User.email == form_data.username)
+        .options(selectinload(User.role), selectinload(User.department))
+        .where(User.email == login_data.email)
     )
     user = result.scalar_one_or_none()
 
-    if not user or not verify_password(form_data.password, user.password_hash):
+    if not user or not verify_password(login_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -51,16 +50,36 @@ async def login(
 
     # Update last login
     user.last_login_at = datetime.utcnow()
-    user.last_login_platform = "web"  # Could be determined from request
+    user.last_login_platform = "mobile"
     await db.commit()
+    await db.refresh(user)
 
     access_token = create_access_token(str(user.id))
     refresh_token = create_refresh_token(str(user.id))
 
-    return Token(
+    return LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        token_type="bearer"
+        token_type="bearer",
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            phone=user.phone,
+            employee_number=user.employee_number,
+            role_id=user.role_id,
+            role=user.role,
+            department_id=user.department_id,
+            department=user.department,
+            manager_id=user.manager_id,
+            is_active=user.is_active,
+            can_access_web=user.can_access_web,
+            can_access_mobile=user.can_access_mobile,
+            avatar_url=user.avatar_url,
+            last_login_at=user.last_login_at,
+            last_login_platform=user.last_login_platform,
+            created_at=user.created_at
+        )
     )
 
 
