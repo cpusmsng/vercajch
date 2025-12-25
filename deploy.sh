@@ -155,13 +155,10 @@ create_admin() {
     print_msg "Creating superadmin user..." "$BLUE"
     docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec backend python -c "
 import asyncio
-import bcrypt
 from app.core.database import async_session_factory
+from app.core.security import get_password_hash
 from app.models.user import User, Role
 from sqlalchemy import select
-
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 async def create_admin():
     async with async_session_factory() as session:
@@ -183,7 +180,7 @@ async def create_admin():
         # Create admin user
         admin = User(
             email='admin@spp-d.sk',
-            password_hash=hash_password('admin123'),
+            password_hash=get_password_hash('admin123'),
             full_name='System Administrator',
             role_id=role.id,
             is_active=True,
