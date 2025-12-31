@@ -107,6 +107,9 @@ dependencies {
     // DataStore for preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
+    // Google Play Services
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+
     // Accompanist
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 

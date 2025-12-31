@@ -15,6 +15,7 @@ import sk.sppd.vercajch.ui.screens.auth.LoginViewModel
 import sk.sppd.vercajch.ui.screens.equipment.EquipmentDetailScreen
 import sk.sppd.vercajch.ui.screens.equipment.EquipmentListScreen
 import sk.sppd.vercajch.ui.screens.home.HomeScreen
+import sk.sppd.vercajch.ui.screens.location.LocationScreen
 import sk.sppd.vercajch.ui.screens.onboarding.OnboardingScreen
 import sk.sppd.vercajch.ui.screens.profile.ProfileScreen
 import sk.sppd.vercajch.ui.screens.scanner.ScannerScreen
@@ -51,6 +52,7 @@ sealed class Screen(val route: String) {
     }
     object Profile : Screen("profile")
     object About : Screen("about")
+    object Location : Screen("location")
 }
 
 @Composable
@@ -83,6 +85,9 @@ fun VercajchNavHost() {
                 },
                 onNavigateToTransfers = {
                     navController.navigate(Screen.Transfers.route)
+                },
+                onNavigateToLocation = {
+                    navController.navigate(Screen.Location.route)
                 },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route)
@@ -220,6 +225,12 @@ fun VercajchNavHost() {
 
         composable(Screen.About.route) {
             AboutScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Location.route) {
+            LocationScreen(
                 onBack = { navController.popBackStack() }
             )
         }

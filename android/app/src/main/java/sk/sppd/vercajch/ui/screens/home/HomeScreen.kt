@@ -22,6 +22,7 @@ fun HomeScreen(
     onNavigateToScanner: () -> Unit,
     onNavigateToEquipment: () -> Unit,
     onNavigateToTransfers: () -> Unit,
+    onNavigateToLocation: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToAbout: () -> Unit,
     onLogout: () -> Unit,
@@ -97,6 +98,14 @@ fun HomeScreen(
                         description = "Požiadavky",
                         icon = Icons.Default.SwapHoriz,
                         onClick = onNavigateToTransfers
+                    )
+                }
+                item {
+                    HomeCard(
+                        title = "Lokalizácia",
+                        description = "Beacony a GPS",
+                        icon = Icons.Default.LocationOn,
+                        onClick = onNavigateToLocation
                     )
                 }
                 item {
