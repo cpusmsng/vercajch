@@ -22,6 +22,8 @@ fun HomeScreen(
     onNavigateToScanner: () -> Unit,
     onNavigateToEquipment: () -> Unit,
     onNavigateToTransfers: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     onLogout: () -> Unit,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
@@ -36,6 +38,13 @@ fun HomeScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
+                    IconButton(onClick = onNavigateToAbout) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = "O aplikácii",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                     IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Logout,
@@ -95,7 +104,7 @@ fun HomeScreen(
                         title = "Profil",
                         description = "Moje nastavenia",
                         icon = Icons.Default.Person,
-                        onClick = { }
+                        onClick = onNavigateToProfile
                     )
                 }
             }

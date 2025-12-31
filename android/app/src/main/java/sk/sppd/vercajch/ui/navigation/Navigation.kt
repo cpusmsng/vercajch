@@ -9,12 +9,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import sk.sppd.vercajch.ui.screens.about.AboutScreen
 import sk.sppd.vercajch.ui.screens.auth.LoginScreen
 import sk.sppd.vercajch.ui.screens.auth.LoginViewModel
 import sk.sppd.vercajch.ui.screens.equipment.EquipmentDetailScreen
 import sk.sppd.vercajch.ui.screens.equipment.EquipmentListScreen
 import sk.sppd.vercajch.ui.screens.home.HomeScreen
 import sk.sppd.vercajch.ui.screens.onboarding.OnboardingScreen
+import sk.sppd.vercajch.ui.screens.profile.ProfileScreen
 import sk.sppd.vercajch.ui.screens.scanner.ScannerScreen
 import sk.sppd.vercajch.ui.screens.transfers.TransfersScreen
 
@@ -31,6 +33,8 @@ sealed class Screen(val route: String) {
             if (tagValue != null) "onboarding?tagValue=$tagValue" else "onboarding"
     }
     object Transfers : Screen("transfers")
+    object Profile : Screen("profile")
+    object About : Screen("about")
 }
 
 @Composable
@@ -63,6 +67,12 @@ fun VercajchNavHost() {
                 },
                 onNavigateToTransfers = {
                     navController.navigate(Screen.Transfers.route)
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route)
+                },
+                onNavigateToAbout = {
+                    navController.navigate(Screen.About.route)
                 },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
@@ -135,6 +145,18 @@ fun VercajchNavHost() {
 
         composable(Screen.Transfers.route) {
             TransfersScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.About.route) {
+            AboutScreen(
                 onBack = { navController.popBackStack() }
             )
         }

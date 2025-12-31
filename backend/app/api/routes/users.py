@@ -98,6 +98,33 @@ async def create_user(
     return UserResponse.model_validate(user)
 
 
+@router.put("/me", response_model=UserResponse)
+async def update_my_profile(
+    profile_data: UserUpdate,
+    db: DB,
+    current_user: CurrentUser,
+):
+    """Update current user's profile (only name and phone)"""
+    # Reload user with relationships
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.role), selectinload(User.department))
+        .where(User.id == current_user.id)
+    )
+    user = result.scalar_one()
+
+    # Only allow updating name and phone for self-service
+    if profile_data.full_name is not None:
+        user.full_name = profile_data.full_name
+    if profile_data.phone is not None:
+        user.phone = profile_data.phone
+
+    await db.commit()
+    await db.refresh(user)
+
+    return UserResponse.model_validate(user)
+
+
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(
     user_id: UUID,

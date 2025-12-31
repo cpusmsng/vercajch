@@ -15,6 +15,13 @@ interface ApiService {
     @GET("auth/me")
     suspend fun getCurrentUser(): User
 
+    @PUT("auth/password")
+    suspend fun changePassword(@Body body: Map<String, String>): Map<String, String>
+
+    // User profile
+    @PUT("users/me")
+    suspend fun updateProfile(@Body body: Map<String, String>): User
+
     // Equipment
     @GET("equipment")
     suspend fun getEquipment(
