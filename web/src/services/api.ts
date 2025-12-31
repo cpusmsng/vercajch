@@ -1,8 +1,11 @@
 import axios from 'axios'
 import { useAuthStore } from '../stores/authStore'
 
+// Use environment variable or fallback to relative /api (for development)
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -34,7 +37,7 @@ api.interceptors.response.use(
       const refreshToken = useAuthStore.getState().refreshToken
       if (refreshToken) {
         try {
-          const response = await axios.post('/api/auth/refresh', null, {
+          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, null, {
             params: { refresh_token: refreshToken },
           })
 
