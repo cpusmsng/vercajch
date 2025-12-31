@@ -98,20 +98,24 @@ interface ApiService {
     @GET("transfers/requests/received")
     suspend fun getReceivedTransferRequests(): List<TransferRequest>
 
-    @POST("transfers/request/direct")
-    suspend fun createDirectTransferRequest(@Body body: Map<String, String>): TransferRequest
+    @POST("transfers/requests")
+    suspend fun createTransferRequest(@Body body: CreateTransferRequest): TransferRequest
 
-    @POST("transfers/request/broadcast")
-    suspend fun createBroadcastTransferRequest(@Body body: Map<String, String>): TransferRequest
+    @POST("transfers/requests/{id}/respond")
+    suspend fun respondToTransferRequest(
+        @Path("id") id: String,
+        @Body body: Map<String, String>
+    ): Map<String, Any>
 
-    @POST("transfers/request/{id}/accept")
-    suspend fun acceptTransferRequest(@Path("id") id: String): Map<String, Any>
-
-    @POST("transfers/request/{id}/reject")
-    suspend fun rejectTransferRequest(@Path("id") id: String): Map<String, Any>
-
-    @POST("transfers/request/{id}/cancel")
+    @POST("transfers/requests/{id}/cancel")
     suspend fun cancelTransferRequest(@Path("id") id: String): Map<String, Any>
+
+    // Users - for finding holder by equipment
+    @GET("users")
+    suspend fun getUsers(
+        @Query("search") search: String? = null,
+        @Query("department_id") departmentId: String? = null
+    ): PaginatedResponse<User>
 
     @GET("transfers/offers/{requestId}")
     suspend fun getTransferOffers(@Path("requestId") requestId: String): List<TransferOffer>

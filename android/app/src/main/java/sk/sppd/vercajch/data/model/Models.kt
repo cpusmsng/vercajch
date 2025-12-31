@@ -101,16 +101,31 @@ data class AccessoryType(
 @Serializable
 data class TransferRequest(
     val id: String,
-    @SerialName("equipment_id") val equipmentId: String,
+    @SerialName("equipment_id") val equipmentId: String? = null,
     @SerialName("requester_id") val requesterId: String,
     @SerialName("holder_id") val holderId: String?,
     val status: String,
     @SerialName("request_type") val requestType: String,
     val message: String?,
+    @SerialName("needed_from") val neededFrom: String? = null,
+    @SerialName("needed_until") val neededUntil: String? = null,
     @SerialName("expires_at") val expiresAt: String?,
+    @SerialName("created_at") val createdAt: String? = null,
     val equipment: Equipment?,
     val requester: User?,
-    val holder: User?
+    val holder: User?,
+    val category: Category? = null
+)
+
+@Serializable
+data class CreateTransferRequest(
+    @SerialName("request_type") val requestType: String,
+    @SerialName("equipment_id") val equipmentId: String? = null,
+    @SerialName("category_id") val categoryId: String? = null,
+    @SerialName("holder_id") val holderId: String? = null,
+    @SerialName("needed_from") val neededFrom: String? = null,
+    @SerialName("needed_until") val neededUntil: String? = null,
+    val message: String? = null
 )
 
 @Serializable

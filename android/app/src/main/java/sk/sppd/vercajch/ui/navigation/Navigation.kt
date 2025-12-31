@@ -18,7 +18,11 @@ import sk.sppd.vercajch.ui.screens.home.HomeScreen
 import sk.sppd.vercajch.ui.screens.onboarding.OnboardingScreen
 import sk.sppd.vercajch.ui.screens.profile.ProfileScreen
 import sk.sppd.vercajch.ui.screens.scanner.ScannerScreen
+import sk.sppd.vercajch.ui.screens.transfers.CreateTransferRequestScreen
 import sk.sppd.vercajch.ui.screens.transfers.TransfersScreen
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -33,6 +37,18 @@ sealed class Screen(val route: String) {
             if (tagValue != null) "onboarding?tagValue=$tagValue" else "onboarding"
     }
     object Transfers : Screen("transfers")
+    object CreateTransferRequest : Screen("transfers/create?equipmentId={equipmentId}&equipmentName={equipmentName}&holderId={holderId}&holderName={holderName}") {
+        fun createRoute(
+            equipmentId: String,
+            equipmentName: String,
+            holderId: String?,
+            holderName: String?
+        ): String {
+            val encodedName = URLEncoder.encode(equipmentName, StandardCharsets.UTF_8.toString())
+            val encodedHolderName = holderName?.let { URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) } ?: ""
+            return "transfers/create?equipmentId=$equipmentId&equipmentName=$encodedName&holderId=${holderId ?: ""}&holderName=$encodedHolderName"
+        }
+    }
     object Profile : Screen("profile")
     object About : Screen("about")
 }
@@ -115,8 +131,15 @@ fun VercajchNavHost() {
             EquipmentDetailScreen(
                 equipmentId = id,
                 onBack = { navController.popBackStack() },
-                onRequestTransfer = { equipmentId ->
-                    // Handle transfer request
+                onRequestTransfer = { equipmentId, equipmentName, holderId, holderName ->
+                    navController.navigate(
+                        Screen.CreateTransferRequest.createRoute(
+                            equipmentId = equipmentId,
+                            equipmentName = equipmentName,
+                            holderId = holderId,
+                            holderName = holderName
+                        )
+                    )
                 }
             )
         }
@@ -146,6 +169,46 @@ fun VercajchNavHost() {
         composable(Screen.Transfers.route) {
             TransfersScreen(
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.CreateTransferRequest.route,
+            arguments = listOf(
+                navArgument("equipmentId") { type = NavType.StringType },
+                navArgument("equipmentName") { type = NavType.StringType },
+                navArgument("holderId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("holderName") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val equipmentId = backStackEntry.arguments?.getString("equipmentId")
+            val equipmentName = backStackEntry.arguments?.getString("equipmentName")?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            }
+            val holderId = backStackEntry.arguments?.getString("holderId")?.ifBlank { null }
+            val holderName = backStackEntry.arguments?.getString("holderName")?.let {
+                if (it.isNotBlank()) URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) else null
+            }
+
+            CreateTransferRequestScreen(
+                equipmentId = equipmentId,
+                equipmentName = equipmentName,
+                holderId = holderId,
+                holderName = holderName,
+                onBack = { navController.popBackStack() },
+                onSuccess = {
+                    navController.navigate(Screen.Transfers.route) {
+                        popUpTo(Screen.Home.route)
+                    }
+                }
             )
         }
 
