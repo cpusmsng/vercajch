@@ -264,8 +264,8 @@ fun BeaconCard(beacon: BeaconInfo) {
         ) {
             // Beacon type icon
             val icon = when (beacon.type) {
-                BeaconType.IBEACON -> Icons.Default.Apple
-                BeaconType.EDDYSTONE_UID, BeaconType.EDDYSTONE_URL -> Icons.Default.Google
+                BeaconType.IBEACON -> Icons.Default.Circle
+                BeaconType.EDDYSTONE_UID, BeaconType.EDDYSTONE_URL -> Icons.Default.Sensors
                 BeaconType.ALTBEACON -> Icons.Default.Bluetooth
                 else -> Icons.Default.Bluetooth
             }
