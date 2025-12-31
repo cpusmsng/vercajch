@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
+import traceback
 
 from app.core.config import settings
 from app.core.database import init_db
@@ -26,13 +28,32 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
+
+# Global exception handler to ensure CORS headers are sent on errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Handle all unhandled exceptions and return proper JSON with CORS headers"""
+    # Log the error for debugging
+    if settings.DEBUG:
+        traceback.print_exc()
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "error": str(exc) if settings.DEBUG else None
+        }
+    )
+
+
+# CORS - must be added after exception handler
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # API routes
