@@ -32,8 +32,8 @@ interface ApiService {
     suspend fun getEquipmentHistory(@Path("id") id: String): Map<String, Any>
 
     // Tags
-    @GET("tags/lookup/{value}")
-    suspend fun lookupTag(@Path("value") value: String): TagLookupResponse
+    @GET("tags/lookup")
+    suspend fun lookupTag(@Query("value") value: String): TagLookupResponse
 
     @POST("tags/lookup")
     suspend fun lookupTagPost(@Body body: Map<String, String>): TagLookupResponse
