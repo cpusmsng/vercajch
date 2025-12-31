@@ -8,23 +8,26 @@ data class User(
     val id: String,
     val email: String,
     @SerialName("full_name") val fullName: String?,
-    @SerialName("employee_id") val employeeId: String?,
-    val phone: String?,
-    @SerialName("is_active") val isActive: Boolean,
-    val role: Role?,
-    val department: Department?
+    @SerialName("employee_number") val employeeNumber: String? = null,
+    val phone: String? = null,
+    @SerialName("is_active") val isActive: Boolean = true,
+    val role: Role? = null,
+    val department: Department? = null
 )
 
 @Serializable
 data class Role(
     val id: String,
-    val name: String
+    val name: String,
+    val code: String? = null,
+    val description: String? = null
 )
 
 @Serializable
 data class Department(
     val id: String,
-    val name: String
+    val name: String,
+    val code: String? = null
 )
 
 @Serializable
@@ -98,16 +101,31 @@ data class AccessoryType(
 @Serializable
 data class TransferRequest(
     val id: String,
-    @SerialName("equipment_id") val equipmentId: String,
+    @SerialName("equipment_id") val equipmentId: String? = null,
     @SerialName("requester_id") val requesterId: String,
     @SerialName("holder_id") val holderId: String?,
     val status: String,
     @SerialName("request_type") val requestType: String,
     val message: String?,
+    @SerialName("needed_from") val neededFrom: String? = null,
+    @SerialName("needed_until") val neededUntil: String? = null,
     @SerialName("expires_at") val expiresAt: String?,
+    @SerialName("created_at") val createdAt: String? = null,
     val equipment: Equipment?,
     val requester: User?,
-    val holder: User?
+    val holder: User?,
+    val category: Category? = null
+)
+
+@Serializable
+data class CreateTransferRequest(
+    @SerialName("request_type") val requestType: String,
+    @SerialName("equipment_id") val equipmentId: String? = null,
+    @SerialName("category_id") val categoryId: String? = null,
+    @SerialName("holder_id") val holderId: String? = null,
+    @SerialName("needed_from") val neededFrom: String? = null,
+    @SerialName("needed_until") val neededUntil: String? = null,
+    val message: String? = null
 )
 
 @Serializable

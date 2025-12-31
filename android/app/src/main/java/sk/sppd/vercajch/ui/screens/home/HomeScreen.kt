@@ -22,6 +22,9 @@ fun HomeScreen(
     onNavigateToScanner: () -> Unit,
     onNavigateToEquipment: () -> Unit,
     onNavigateToTransfers: () -> Unit,
+    onNavigateToLocation: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     onLogout: () -> Unit,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
@@ -36,6 +39,13 @@ fun HomeScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
+                    IconButton(onClick = onNavigateToAbout) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = "O aplikácii",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                     IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Logout,
@@ -92,10 +102,18 @@ fun HomeScreen(
                 }
                 item {
                     HomeCard(
+                        title = "Lokalizácia",
+                        description = "Beacony a GPS",
+                        icon = Icons.Default.LocationOn,
+                        onClick = onNavigateToLocation
+                    )
+                }
+                item {
+                    HomeCard(
                         title = "Profil",
                         description = "Moje nastavenia",
                         icon = Icons.Default.Person,
-                        onClick = { }
+                        onClick = onNavigateToProfile
                     )
                 }
             }

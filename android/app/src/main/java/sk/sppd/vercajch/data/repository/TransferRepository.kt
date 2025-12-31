@@ -1,6 +1,7 @@
 package sk.sppd.vercajch.data.repository
 
 import sk.sppd.vercajch.data.api.ApiService
+import sk.sppd.vercajch.data.model.CreateTransferRequest
 import sk.sppd.vercajch.data.model.TransferOffer
 import sk.sppd.vercajch.data.model.TransferRequest
 import javax.inject.Inject
@@ -28,35 +29,26 @@ class TransferRepository @Inject constructor(
         }
     }
 
-    suspend fun createDirectRequest(
-        equipmentId: String,
-        holderId: String,
-        message: String?
+    suspend fun createRequest(
+        requestType: String,
+        equipmentId: String? = null,
+        categoryId: String? = null,
+        holderId: String? = null,
+        neededFrom: String? = null,
+        neededUntil: String? = null,
+        message: String? = null
     ): Result<TransferRequest> {
         return try {
-            val body = mutableMapOf(
-                "equipment_id" to equipmentId,
-                "holder_id" to holderId
+            val request = CreateTransferRequest(
+                requestType = requestType,
+                equipmentId = equipmentId,
+                categoryId = categoryId,
+                holderId = holderId,
+                neededFrom = neededFrom,
+                neededUntil = neededUntil,
+                message = message
             )
-            message?.let { body["message"] = it }
-            val response = apiService.createDirectTransferRequest(body)
-            Result.success(response)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun createBroadcastRequest(
-        categoryId: String,
-        message: String
-    ): Result<TransferRequest> {
-        return try {
-            val response = apiService.createBroadcastTransferRequest(
-                mapOf(
-                    "category_id" to categoryId,
-                    "message" to message
-                )
-            )
+            val response = apiService.createTransferRequest(request)
             Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
@@ -65,16 +57,18 @@ class TransferRepository @Inject constructor(
 
     suspend fun acceptRequest(requestId: String): Result<Unit> {
         return try {
-            apiService.acceptTransferRequest(requestId)
+            apiService.respondToTransferRequest(requestId, mapOf("action" to "accept"))
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun rejectRequest(requestId: String): Result<Unit> {
+    suspend fun rejectRequest(requestId: String, reason: String? = null): Result<Unit> {
         return try {
-            apiService.rejectTransferRequest(requestId)
+            val body = mutableMapOf("action" to "reject")
+            reason?.let { body["rejection_reason"] = it }
+            apiService.respondToTransferRequest(requestId, body)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

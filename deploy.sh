@@ -155,13 +155,10 @@ create_admin() {
     print_msg "Creating superadmin user..." "$BLUE"
     docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME exec backend python -c "
 import asyncio
-import bcrypt
 from app.core.database import async_session_factory
+from app.core.security import get_password_hash
 from app.models.user import User, Role
 from sqlalchemy import select
-
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 async def create_admin():
     async with async_session_factory() as session:
@@ -183,7 +180,7 @@ async def create_admin():
         # Create admin user
         admin = User(
             email='admin@spp-d.sk',
-            password_hash=hash_password('admin123'),
+            password_hash=get_password_hash('admin123'),
             full_name='System Administrator',
             role_id=role.id,
             is_active=True,
@@ -215,6 +212,34 @@ dev() {
     echo ""
 }
 
+# Pull from git and rebuild
+update() {
+    BRANCH=${1:-"main"}
+    print_msg "Updating Vercajch from git..." "$BLUE"
+
+    print_msg "Pulling latest changes from $BRANCH..." "$YELLOW"
+    git pull origin $BRANCH
+
+    print_msg "Stopping services..." "$YELLOW"
+    docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME down
+
+    print_msg "Rebuilding images..." "$YELLOW"
+    docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME build --no-cache
+
+    print_msg "Starting services..." "$YELLOW"
+    docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME up -d
+
+    print_msg "Update completed!" "$GREEN"
+    status
+}
+
+# Quick deploy (pull, build, restart)
+deploy() {
+    BRANCH=${1:-"main"}
+    print_msg "=== Quick Deploy ===" "$BLUE"
+    update $BRANCH
+}
+
 # Clean up everything
 clean() {
     print_msg "Cleaning up Vercajch..." "$YELLOW"
@@ -237,30 +262,40 @@ help() {
     echo "Usage: ./deploy.sh [command]"
     echo ""
     echo "Commands:"
-    echo "  start        Start all services"
-    echo "  stop         Stop all services"
-    echo "  restart      Restart all services"
-    echo "  build        Build Docker images"
-    echo "  up           Build and start services"
-    echo "  logs [svc]   Show logs (optionally for specific service)"
-    echo "  status       Show service status"
-    echo "  migrate      Run database migrations"
-    echo "  backup       Create database backup"
-    echo "  restore      Restore database from backup"
-    echo "  create-admin Create initial admin user"
-    echo "  dev          Start in development mode"
-    echo "  clean        Remove all containers, volumes, and images"
-    echo "  help         Show this help message"
+    echo "  deploy [branch]  Pull from git, build, and restart (default: main)"
+    echo "  update [branch]  Same as deploy"
+    echo "  start            Start all services"
+    echo "  stop             Stop all services"
+    echo "  restart          Restart all services"
+    echo "  build            Build Docker images"
+    echo "  up               Build and start services"
+    echo "  logs [svc]       Show logs (optionally for specific service)"
+    echo "  status           Show service status"
+    echo "  migrate          Run database migrations"
+    echo "  backup           Create database backup"
+    echo "  restore          Restore database from backup"
+    echo "  create-admin     Create initial admin user"
+    echo "  dev              Start in development mode"
+    echo "  clean            Remove all containers, volumes, and images"
+    echo "  help             Show this help message"
     echo ""
     echo "Examples:"
-    echo "  ./deploy.sh up           # Build and start everything"
-    echo "  ./deploy.sh logs backend # Show backend logs"
-    echo "  ./deploy.sh backup       # Create database backup"
+    echo "  ./deploy.sh deploy                         # Deploy from main branch"
+    echo "  ./deploy.sh deploy claude/fix-login-issues # Deploy from specific branch"
+    echo "  ./deploy.sh up                             # Build and start everything"
+    echo "  ./deploy.sh logs backend                   # Show backend logs"
+    echo "  ./deploy.sh backup                         # Create database backup"
     echo ""
 }
 
 # Main
 case "${1}" in
+    deploy)
+        deploy $2
+        ;;
+    update)
+        update $2
+        ;;
     start)
         start
         ;;

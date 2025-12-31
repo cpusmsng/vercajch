@@ -35,7 +35,9 @@ android {
             )
         }
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000/api\"")
+            // Use production API for testing on physical devices
+            // For emulator testing, change to: "http://10.0.2.2:8000/api"
+            buildConfigField("String", "API_BASE_URL", "\"https://equip.spp-d.sk/api\"")
         }
     }
 
@@ -71,7 +73,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.2")
 
     // Compose
-    implementation(platform("androidx.compose:compose-bom:2024.01.00"))
+    implementation(platform("androidx.compose:compose-bom:2024.02.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -105,6 +107,9 @@ dependencies {
     // DataStore for preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
+    // Google Play Services
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+
     // Accompanist
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
@@ -112,7 +117,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.01.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.02.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

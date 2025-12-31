@@ -123,10 +123,13 @@ async def lookup_tag(
         tag = result.scalar_one_or_none()
 
     if not tag:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tag not found"
-        )
+        # Tag not found - return response for onboarding new equipment
+        return {
+            "found": False,
+            "tag_type": None,
+            "tag_value": value,
+            "equipment": None
+        }
 
     # Update scan count
     tag.scan_count += 1
@@ -135,11 +138,17 @@ async def lookup_tag(
 
     if tag.equipment:
         return {
+            "found": True,
+            "tag_type": tag.tag_type,
+            "tag_value": tag.tag_value,
             "tag": EquipmentTagResponse.model_validate(tag),
             "equipment": EquipmentResponse.model_validate(tag.equipment)
         }
     else:
         return {
+            "found": True,
+            "tag_type": tag.tag_type,
+            "tag_value": tag.tag_value,
             "tag": EquipmentTagResponse.model_validate(tag),
             "equipment": None
         }

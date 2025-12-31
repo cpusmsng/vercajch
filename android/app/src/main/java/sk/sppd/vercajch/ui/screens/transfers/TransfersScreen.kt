@@ -1,5 +1,7 @@
 package sk.sppd.vercajch.ui.screens.transfers
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,9 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import sk.sppd.vercajch.data.model.TransferRequest
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -159,6 +166,8 @@ fun TransferRequestCard(
     onReject: () -> Unit,
     onCancel: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -172,7 +181,7 @@ fun TransferRequestCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = request.equipment?.name ?: "Neznáme náradie",
                         style = MaterialTheme.typography.titleMedium
@@ -186,7 +195,15 @@ fun TransferRequestCard(
                 TransferStatusChip(status = request.status)
             }
 
-            if (isReceived) {
+            // Person info with contact options
+            val person = if (isReceived) request.requester else request.holder
+            val personLabel = if (isReceived) "Od" else "Komu"
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.Person,
@@ -196,26 +213,56 @@ fun TransferRequestCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Od: ${request.requester?.fullName ?: "Neznámy"}",
+                        text = "$personLabel: ${person?.fullName ?: "Neznámy"}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Komu: ${request.holder?.fullName ?: "Neznámy"}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+
+                // Contact buttons
+                Row {
+                    person?.phone?.let { phone ->
+                        IconButton(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_DIAL).apply {
+                                    data = Uri.parse("tel:$phone")
+                                }
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Phone,
+                                contentDescription = "Zavolať",
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                    person?.email?.let { email ->
+                        IconButton(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                    data = Uri.parse("mailto:$email")
+                                }
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Email,
+                                contentDescription = "Napísať email",
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 }
+            }
+
+            // Borrow duration info
+            request.neededUntil?.let { neededUntil ->
+                BorrowDurationInfo(neededUntil = neededUntil)
             }
 
             if (!request.message.isNullOrBlank()) {
@@ -254,6 +301,74 @@ fun TransferRequestCard(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun BorrowDurationInfo(neededUntil: String) {
+    val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+    val displayFormatter = DateTimeFormatter.ofPattern("d.M.yyyy")
+
+    val deadline = try {
+        LocalDateTime.parse(neededUntil, formatter)
+    } catch (e: Exception) {
+        try {
+            LocalDateTime.parse(neededUntil.replace("Z", ""), formatter)
+        } catch (e2: Exception) {
+            null
+        }
+    }
+
+    if (deadline != null) {
+        val now = LocalDateTime.now()
+        val daysRemaining = ChronoUnit.DAYS.between(now, deadline)
+        val hoursRemaining = ChronoUnit.HOURS.between(now, deadline)
+
+        val (text, isWarning) = when {
+            daysRemaining < 0 -> "Po termíne!" to true
+            daysRemaining == 0L && hoursRemaining > 0 -> "Zostáva $hoursRemaining hodín" to true
+            daysRemaining == 0L -> "Dnes je posledný deň!" to true
+            daysRemaining == 1L -> "Zostáva 1 deň" to false
+            daysRemaining <= 3 -> "Zostávajú $daysRemaining dni" to false
+            else -> "Potrebné do: ${deadline.format(displayFormatter)}" to false
+        }
+
+        val backgroundColor = if (isWarning) {
+            MaterialTheme.colorScheme.errorContainer
+        } else {
+            MaterialTheme.colorScheme.tertiaryContainer
+        }
+
+        val contentColor = if (isWarning) {
+            MaterialTheme.colorScheme.error
+        } else {
+            MaterialTheme.colorScheme.tertiary
+        }
+
+        Surface(
+            color = backgroundColor,
+            shape = MaterialTheme.shapes.small,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    if (isWarning) Icons.Default.Warning else Icons.Default.Schedule,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = contentColor
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = if (isWarning) FontWeight.Bold else FontWeight.Normal,
+                    color = contentColor
+                )
             }
         }
     }

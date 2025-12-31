@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,7 +21,7 @@ import sk.sppd.vercajch.data.model.Equipment
 fun EquipmentDetailScreen(
     equipmentId: String,
     onBack: () -> Unit,
-    onRequestTransfer: (String) -> Unit,
+    onRequestTransfer: (equipmentId: String, equipmentName: String, holderId: String?, holderName: String?) -> Unit,
     viewModel: EquipmentDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -80,7 +79,15 @@ fun EquipmentDetailScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    onRequestTransfer = { onRequestTransfer(equipmentId) }
+                    onRequestTransfer = {
+                        val eq = uiState.equipment!!
+                        onRequestTransfer(
+                            eq.id,
+                            eq.name,
+                            eq.currentHolder?.id,
+                            eq.currentHolder?.fullName
+                        )
+                    }
                 )
             }
         }
@@ -309,15 +316,15 @@ fun EquipmentDetailContent(
             }
         }
 
-        // Actions
-        if (equipment.status == "available" && equipment.currentHolder == null) {
+        // Actions - Show request button if equipment has a holder (to borrow from them)
+        if (equipment.currentHolder != null) {
             Button(
                 onClick = onRequestTransfer,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.SwapHoriz, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Požiadať o transfer")
+                Text("Požiadať o zapožičanie")
             }
         }
     }

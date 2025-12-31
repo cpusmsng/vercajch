@@ -64,6 +64,8 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:5173",
         "https://vercajch.spp-d.sk",
+        "https://www.spp-d.sk",
+        "https://equip.spp-d.sk",
     ]
 
     class Config:

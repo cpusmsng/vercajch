@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import sk.sppd.vercajch.BuildConfig
+import sk.sppd.vercajch.MainActivity
 import sk.sppd.vercajch.data.repository.EquipmentRepository
+import sk.sppd.vercajch.util.NfcTagInfo
 import javax.inject.Inject
 
 data class ScannerUiState(
@@ -16,7 +18,8 @@ data class ScannerUiState(
     val equipmentId: String? = null,
     val newTagValue: String? = null,
     val error: String? = null,
-    val lastScannedValue: String? = null
+    val lastScannedValue: String? = null,
+    val nfcTagInfo: NfcTagInfo? = null
 )
 
 @HiltViewModel
@@ -28,6 +31,18 @@ class ScannerViewModel @Inject constructor(
     val uiState: StateFlow<ScannerUiState> = _uiState.asStateFlow()
 
     private var isProcessing = false
+
+    init {
+        // Listen for NFC tags scanned from MainActivity
+        viewModelScope.launch {
+            MainActivity.nfcTagScanned.collect { tagInfo ->
+                if (tagInfo != null) {
+                    onNfcTagScanned(tagInfo)
+                    MainActivity.clearNfcTag()
+                }
+            }
+        }
+    }
 
     fun onBarcodeScanned(value: String) {
         if (isProcessing || value == _uiState.value.lastScannedValue) {
@@ -42,31 +57,62 @@ class ScannerViewModel @Inject constructor(
                 // Extract UUID from QR code URL or use raw value
                 val tagValue = extractTagValue(value)
 
-                equipmentRepository.lookupTag(tagValue)
-                    .onSuccess { response ->
-                        if (response.found && response.equipment != null) {
-                            _uiState.value = ScannerUiState(
-                                equipmentId = response.equipment.id,
-                                lastScannedValue = value
-                            )
-                        } else {
-                            // New equipment - start onboarding
-                            _uiState.value = ScannerUiState(
-                                newTagValue = tagValue,
-                                lastScannedValue = value
-                            )
-                        }
-                    }
-                    .onFailure { exception ->
-                        _uiState.value = ScannerUiState(
-                            error = exception.message ?: "Vyhľadávanie zlyhalo",
-                            lastScannedValue = value
-                        )
-                    }
+                lookupTag(tagValue)
             } finally {
                 isProcessing = false
             }
         }
+    }
+
+    private fun onNfcTagScanned(tagInfo: NfcTagInfo) {
+        if (isProcessing) {
+            return
+        }
+
+        val tagValue = tagInfo.content ?: tagInfo.id
+
+        if (tagValue == _uiState.value.lastScannedValue) {
+            return
+        }
+
+        isProcessing = true
+        _uiState.value = ScannerUiState(
+            isLoading = true,
+            lastScannedValue = tagValue,
+            nfcTagInfo = tagInfo
+        )
+
+        viewModelScope.launch {
+            try {
+                lookupTag(tagValue)
+            } finally {
+                isProcessing = false
+            }
+        }
+    }
+
+    private suspend fun lookupTag(tagValue: String) {
+        equipmentRepository.lookupTag(tagValue)
+            .onSuccess { response ->
+                if (response.found && response.equipment != null) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        equipmentId = response.equipment.id
+                    )
+                } else {
+                    // New equipment - start onboarding
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        newTagValue = tagValue
+                    )
+                }
+            }
+            .onFailure { exception ->
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = exception.message ?: "Vyhľadávanie zlyhalo"
+                )
+            }
     }
 
     private fun extractTagValue(qrContent: String): String {

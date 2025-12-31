@@ -47,7 +47,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - ENVIRONMENT=${ENVIRONMENT:-production}
-      - CORS_ORIGINS=["https://equip.spp-d.sk","http://localhost:3000","http://localhost:3010"]
+      - CORS_ORIGINS=["https://www.spp-d.sk","https://equip.spp-d.sk","http://localhost:3000","http://localhost:3010"]
       - APP_DOMAIN=spp-d.sk
       - QR_BASE_URL=https://equip.spp-d.sk/scan
     depends_on:
@@ -56,7 +56,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8001:8000"
+      - "8002:8000"
     volumes:
       - uploads_data:/app/uploads
     restart: unless-stopped
