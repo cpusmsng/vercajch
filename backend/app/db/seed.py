@@ -8,7 +8,7 @@ from datetime import datetime, date, timedelta
 from decimal import Decimal
 
 from sqlalchemy import select
-from app.core.database import async_session_maker
+from app.core.database import async_session_factory
 from app.core.security import get_password_hash
 from app.models.user import User, Role, Department
 from app.models.equipment import Category, Location, Manufacturer, EquipmentModel, Equipment, EquipmentTag
@@ -397,7 +397,7 @@ async def main():
     """Run all seed functions"""
     print("Starting database seed...")
 
-    async with async_session_maker() as session:
+    async with async_session_factory() as session:
         try:
             roles = await seed_roles(session)
             departments = await seed_departments(session)
