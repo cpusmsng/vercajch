@@ -214,6 +214,15 @@ async def get_calibrations_due(
 
 
 # Equipment calibrations
+@router.get("/equipment/new")
+async def get_new_equipment_calibrations(
+    db: DB,
+    current_user: CurrentUser,
+):
+    """Get calibrations for new equipment (empty list)"""
+    return []
+
+
 @router.get("/equipment/{equipment_id}", response_model=List[CalibrationResponse])
 async def get_equipment_calibrations(
     equipment_id: UUID,
