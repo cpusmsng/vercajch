@@ -53,8 +53,8 @@ class TestAuth:
         """Test admin login"""
         response = client.post(
             "/auth/login",
-            data={
-                "username": TEST_USERS["admin"]["email"],
+            json={
+                "email": TEST_USERS["admin"]["email"],
                 "password": TEST_USERS["admin"]["password"],
             },
         )
@@ -67,8 +67,8 @@ class TestAuth:
         """Test manager login"""
         response = client.post(
             "/auth/login",
-            data={
-                "username": TEST_USERS["manager"]["email"],
+            json={
+                "email": TEST_USERS["manager"]["email"],
                 "password": TEST_USERS["manager"]["password"],
             },
         )
@@ -79,8 +79,8 @@ class TestAuth:
         """Test leader login"""
         response = client.post(
             "/auth/login",
-            data={
-                "username": TEST_USERS["leader"]["email"],
+            json={
+                "email": TEST_USERS["leader"]["email"],
                 "password": TEST_USERS["leader"]["password"],
             },
         )
@@ -91,8 +91,8 @@ class TestAuth:
         """Test worker login"""
         response = client.post(
             "/auth/login",
-            data={
-                "username": TEST_USERS["worker"]["email"],
+            json={
+                "email": TEST_USERS["worker"]["email"],
                 "password": TEST_USERS["worker"]["password"],
             },
         )
@@ -103,7 +103,7 @@ class TestAuth:
         """Test login with invalid credentials"""
         response = client.post(
             "/auth/login",
-            data={"username": "invalid@email.com", "password": "wrongpassword"},
+            json={"email": "invalid@email.com", "password": "wrongpassword"},
         )
         assert response.status_code == 401
 

@@ -68,10 +68,10 @@ test_endpoint() {
 # Login and get tokens
 echo "=== Authentication Tests ==="
 
-# Admin login
+# Admin login (API expects JSON with email/password)
 response=$(curl -s -X POST "$API_URL/auth/login" \
-    -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=admin@spp-d.sk&password=admin123")
+    -H "Content-Type: application/json" \
+    -d '{"email":"admin@spp-d.sk","password":"admin123"}')
 ADMIN_TOKEN=$(echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 if [ -n "$ADMIN_TOKEN" ]; then
     echo -e "${GREEN}✓${NC} Admin login successful"
@@ -84,8 +84,8 @@ fi
 
 # Manager login
 response=$(curl -s -X POST "$API_URL/auth/login" \
-    -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=manager@spp-d.sk&password=manager123")
+    -H "Content-Type: application/json" \
+    -d '{"email":"manager@spp-d.sk","password":"manager123"}')
 MANAGER_TOKEN=$(echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 if [ -n "$MANAGER_TOKEN" ]; then
     echo -e "${GREEN}✓${NC} Manager login successful"
@@ -97,8 +97,8 @@ fi
 
 # Leader login
 response=$(curl -s -X POST "$API_URL/auth/login" \
-    -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=leader@spp-d.sk&password=leader123")
+    -H "Content-Type: application/json" \
+    -d '{"email":"leader@spp-d.sk","password":"leader123"}')
 LEADER_TOKEN=$(echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 if [ -n "$LEADER_TOKEN" ]; then
     echo -e "${GREEN}✓${NC} Leader login successful"
@@ -110,8 +110,8 @@ fi
 
 # Worker login
 response=$(curl -s -X POST "$API_URL/auth/login" \
-    -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=worker1@spp-d.sk&password=worker123")
+    -H "Content-Type: application/json" \
+    -d '{"email":"worker1@spp-d.sk","password":"worker123"}')
 WORKER_TOKEN=$(echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 if [ -n "$WORKER_TOKEN" ]; then
     echo -e "${GREEN}✓${NC} Worker login successful"
