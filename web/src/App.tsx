@@ -7,6 +7,7 @@ import EquipmentPage from './pages/EquipmentPage'
 import EquipmentDetailPage from './pages/EquipmentDetailPage'
 import CalibrationsPage from './pages/CalibrationsPage'
 import TransfersPage from './pages/TransfersPage'
+import CreateTransferPage from './pages/CreateTransferPage'
 import UsersPage from './pages/UsersPage'
 import LocationsPage from './pages/LocationsPage'
 import CategoriesPage from './pages/CategoriesPage'
@@ -47,6 +48,7 @@ function App() {
                 <Route path="/equipment/:id" element={<EquipmentDetailPage />} />
                 <Route path="/calibrations" element={<CalibrationsPage />} />
                 <Route path="/transfers" element={<TransfersPage />} />
+                <Route path="/transfers/new" element={<CreateTransferPage />} />
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/locations" element={<LocationsPage />} />
                 <Route path="/categories" element={<CategoriesPage />} />

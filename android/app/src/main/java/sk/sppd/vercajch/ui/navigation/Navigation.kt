@@ -16,6 +16,7 @@ import sk.sppd.vercajch.ui.screens.equipment.EquipmentDetailScreen
 import sk.sppd.vercajch.ui.screens.equipment.EquipmentListScreen
 import sk.sppd.vercajch.ui.screens.home.HomeScreen
 import sk.sppd.vercajch.ui.screens.location.LocationScreen
+import sk.sppd.vercajch.util.BeaconInfo
 import sk.sppd.vercajch.ui.screens.onboarding.OnboardingScreen
 import sk.sppd.vercajch.ui.screens.profile.ProfileScreen
 import sk.sppd.vercajch.ui.screens.scanner.ScannerScreen
@@ -173,7 +174,11 @@ fun VercajchNavHost() {
 
         composable(Screen.Transfers.route) {
             TransfersScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onCreateTransfer = {
+                    // Navigate to equipment list to select equipment for transfer
+                    navController.navigate(Screen.EquipmentList.route)
+                }
             )
         }
 
@@ -231,7 +236,14 @@ fun VercajchNavHost() {
 
         composable(Screen.Location.route) {
             LocationScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onBeaconClick = { beacon ->
+                    // Navigate to onboarding with beacon ID as tag value
+                    // Format: beacon_type:id (e.g., "ibeacon:uuid:major:minor")
+                    val tagValue = "beacon:${beacon.id}"
+                    val encodedTag = URLEncoder.encode(tagValue, StandardCharsets.UTF_8.toString())
+                    navController.navigate(Screen.Onboarding.createRoute(encodedTag))
+                }
             )
         }
     }

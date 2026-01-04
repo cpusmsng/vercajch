@@ -2,7 +2,7 @@ from datetime import datetime, date
 from decimal import Decimal
 from typing import Optional, List
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .common import BaseSchema
 
@@ -63,6 +63,10 @@ class CategoryBasic(BaseSchema):
     id: UUID
     name: str
     code: Optional[str] = None
+    description: Optional[str] = None
+    color: Optional[str] = None
+    requires_calibration: bool = Field(default=False, validation_alias="requires_certification")
+    default_calibration_interval_days: Optional[int] = Field(default=None, validation_alias="default_maintenance_interval_days")
 
 
 class LocationBasic(BaseSchema):
