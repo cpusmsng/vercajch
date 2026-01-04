@@ -11,6 +11,7 @@ import sk.sppd.vercajch.BuildConfig
 import sk.sppd.vercajch.MainActivity
 import sk.sppd.vercajch.data.repository.EquipmentRepository
 import sk.sppd.vercajch.util.NfcTagInfo
+import sk.sppd.vercajch.util.SoundManager
 import javax.inject.Inject
 
 data class ScannerUiState(
@@ -24,7 +25,8 @@ data class ScannerUiState(
 
 @HiltViewModel
 class ScannerViewModel @Inject constructor(
-    private val equipmentRepository: EquipmentRepository
+    private val equipmentRepository: EquipmentRepository,
+    private val soundManager: SoundManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ScannerUiState())
@@ -75,6 +77,9 @@ class ScannerViewModel @Inject constructor(
             return
         }
 
+        // Play NFC detection sound immediately
+        soundManager.playNfcSound()
+
         isProcessing = true
         _uiState.value = ScannerUiState(
             isLoading = true,
@@ -94,6 +99,9 @@ class ScannerViewModel @Inject constructor(
     private suspend fun lookupTag(tagValue: String) {
         equipmentRepository.lookupTag(tagValue)
             .onSuccess { response ->
+                // Play success sound on any successful scan
+                soundManager.playSuccessSound()
+
                 if (response.found && response.equipment != null) {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -108,6 +116,9 @@ class ScannerViewModel @Inject constructor(
                 }
             }
             .onFailure { exception ->
+                // Play error sound on failure
+                soundManager.playErrorSound()
+
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = exception.message ?: "Vyhľadávanie zlyhalo"

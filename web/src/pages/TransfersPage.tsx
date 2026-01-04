@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
 import type { TransferRequest, Transfer } from '../types'
-import { ArrowLeftRight, Clock, Check, X, Eye } from 'lucide-react'
+import { ArrowLeftRight, Clock, Check, X, Eye, Plus } from 'lucide-react'
 
 export default function TransfersPage() {
   const [activeTab, setActiveTab] = useState<
@@ -71,11 +71,20 @@ export default function TransfersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Transfery</h1>
-        <p className="text-gray-600">
-          Správa požiadaviek o transfer náradia medzi používateľmi
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Transfery</h1>
+          <p className="text-gray-600">
+            Správa požiadaviek o transfer náradia medzi používateľmi
+          </p>
+        </div>
+        <Link
+          to="/transfers/new"
+          className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Nový transfer
+        </Link>
       </div>
 
       {/* Stats */}
