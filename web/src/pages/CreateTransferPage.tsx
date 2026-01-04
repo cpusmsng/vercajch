@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../services/api'
 import type { Equipment } from '../types'
-import { ArrowLeft, Search, Send, Clock, User } from 'lucide-react'
+import { ArrowLeft, Search, Send, User } from 'lucide-react'
 
 interface TransferFormData {
   equipment_id: string
