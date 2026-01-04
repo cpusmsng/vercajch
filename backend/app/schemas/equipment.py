@@ -73,6 +73,10 @@ class LocationBasic(BaseSchema):
     id: UUID
     name: str
     type: str
+    code: Optional[str] = None
+    address: Optional[str] = None
+    gps_lat: Optional[float] = None
+    gps_lng: Optional[float] = None
 
 
 class UserBasic(BaseSchema):

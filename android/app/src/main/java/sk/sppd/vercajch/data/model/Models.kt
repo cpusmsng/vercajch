@@ -78,10 +78,11 @@ data class Category(
 data class Location(
     val id: String,
     val name: String,
-    val code: String?,
-    val address: String?,
-    @SerialName("gps_lat") val gpsLat: Double?,
-    @SerialName("gps_lng") val gpsLng: Double?
+    val type: String? = null,
+    val code: String? = null,
+    val address: String? = null,
+    @SerialName("gps_lat") val gpsLat: Double? = null,
+    @SerialName("gps_lng") val gpsLng: Double? = null
 )
 
 @Serializable

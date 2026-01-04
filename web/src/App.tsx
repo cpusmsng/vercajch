@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import EquipmentPage from './pages/EquipmentPage'
 import EquipmentDetailPage from './pages/EquipmentDetailPage'
+import EquipmentEditPage from './pages/EquipmentEditPage'
 import CalibrationsPage from './pages/CalibrationsPage'
 import TransfersPage from './pages/TransfersPage'
 import CreateTransferPage from './pages/CreateTransferPage'
@@ -45,7 +46,9 @@ function App() {
               <Routes>
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/equipment" element={<EquipmentPage />} />
+                <Route path="/equipment/new" element={<EquipmentEditPage />} />
                 <Route path="/equipment/:id" element={<EquipmentDetailPage />} />
+                <Route path="/equipment/:id/edit" element={<EquipmentEditPage />} />
                 <Route path="/calibrations" element={<CalibrationsPage />} />
                 <Route path="/transfers" element={<TransfersPage />} />
                 <Route path="/transfers/new" element={<CreateTransferPage />} />

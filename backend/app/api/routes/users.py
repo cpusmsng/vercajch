@@ -192,13 +192,14 @@ async def get_user(
 
 
 @router.put("/{user_id}", response_model=UserResponse)
+@router.patch("/{user_id}", response_model=UserResponse)
 async def update_user(
     user_id: UUID,
     user_data: UserUpdate,
     db: DB,
     current_user: ManagerUser,
 ):
-    """Update a user"""
+    """Update a user (supports both PUT and PATCH)"""
     result = await db.execute(
         select(User).where(User.id == user_id)
     )
