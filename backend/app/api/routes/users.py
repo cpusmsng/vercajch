@@ -9,7 +9,7 @@ from app.api.deps import DB, CurrentUser, ManagerUser, AdminUser
 from app.core.security import get_password_hash
 from app.core.permissions import Permission
 from app.models.user import User, Role, Department
-from app.schemas.user import UserCreate, UserUpdate, UserResponse, UserListResponse
+from app.schemas.user import UserCreate, UserUpdate, UserResponse, UserListResponse, DepartmentResponse, RoleResponse
 from app.schemas.common import PaginatedResponse
 
 router = APIRouter()
@@ -98,6 +98,49 @@ async def create_user(
     return UserResponse.model_validate(user)
 
 
+@router.get("/departments", response_model=List[DepartmentResponse])
+async def list_departments(
+    db: DB,
+    current_user: CurrentUser,
+):
+    """List all departments"""
+    result = await db.execute(
+        select(Department).order_by(Department.name)
+    )
+    departments = result.scalars().all()
+    return [DepartmentResponse.model_validate(d) for d in departments]
+
+
+@router.get("/roles", response_model=List[RoleResponse])
+async def list_roles(
+    db: DB,
+    current_user: CurrentUser,
+):
+    """List all roles"""
+    result = await db.execute(
+        select(Role).order_by(Role.name)
+    )
+    roles = result.scalars().all()
+    return [RoleResponse.model_validate(r) for r in roles]
+
+
+@router.get("/team", response_model=List[UserListResponse])
+async def get_team(
+    db: DB,
+    current_user: CurrentUser,
+):
+    """Get current user's team members"""
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.role), selectinload(User.department))
+        .where(User.manager_id == current_user.id)
+        .order_by(User.full_name)
+    )
+    users = result.scalars().all()
+
+    return [UserListResponse.model_validate(u) for u in users]
+
+
 @router.put("/me", response_model=UserResponse)
 async def update_my_profile(
     profile_data: UserUpdate,
@@ -149,13 +192,14 @@ async def get_user(
 
 
 @router.put("/{user_id}", response_model=UserResponse)
+@router.patch("/{user_id}", response_model=UserResponse)
 async def update_user(
     user_id: UUID,
     user_data: UserUpdate,
     db: DB,
     current_user: ManagerUser,
 ):
-    """Update a user"""
+    """Update a user (supports both PUT and PATCH)"""
     result = await db.execute(
         select(User).where(User.id == user_id)
     )
@@ -237,20 +281,3 @@ async def get_user_equipment(
     equipment = result.scalars().all()
 
     return [EquipmentListResponse.model_validate(e) for e in equipment]
-
-
-@router.get("/team", response_model=List[UserListResponse])
-async def get_team(
-    db: DB,
-    current_user: CurrentUser,
-):
-    """Get current user's team members"""
-    result = await db.execute(
-        select(User)
-        .options(selectinload(User.role), selectinload(User.department))
-        .where(User.manager_id == current_user.id)
-        .order_by(User.full_name)
-    )
-    users = result.scalars().all()
-
-    return [UserListResponse.model_validate(u) for u in users]

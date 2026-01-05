@@ -25,6 +25,7 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun TransfersScreen(
     onBack: () -> Unit,
+    onCreateTransfer: () -> Unit = {},
     viewModel: TransfersViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -49,6 +50,14 @@ fun TransfersScreen(
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onCreateTransfer,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Nový transfer")
+            }
         }
     ) { paddingValues ->
         Column(

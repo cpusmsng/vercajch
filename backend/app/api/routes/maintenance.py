@@ -101,6 +101,65 @@ async def create_maintenance(
     return MaintenanceResponse.model_validate(record)
 
 
+@router.get("/stats")
+async def get_maintenance_stats(
+    db: DB,
+    current_user: CurrentUser,
+):
+    """Get maintenance statistics"""
+    from datetime import timedelta
+    today = date.today()
+
+    # Count by status
+    pending_result = await db.execute(
+        select(func.count()).where(MaintenanceRecord.status == "pending")
+    )
+    pending = pending_result.scalar() or 0
+
+    in_progress_result = await db.execute(
+        select(func.count()).where(MaintenanceRecord.status == "in_progress")
+    )
+    in_progress = in_progress_result.scalar() or 0
+
+    completed_result = await db.execute(
+        select(func.count()).where(MaintenanceRecord.status == "completed")
+    )
+    completed = completed_result.scalar() or 0
+
+    # Overdue
+    overdue_result = await db.execute(
+        select(func.count()).where(
+            and_(
+                MaintenanceRecord.status.in_(["pending", "in_progress"]),
+                MaintenanceRecord.scheduled_date < today
+            )
+        )
+    )
+    overdue = overdue_result.scalar() or 0
+
+    # Due in 7 days
+    seven_days = today + timedelta(days=7)
+    due_soon_result = await db.execute(
+        select(func.count()).where(
+            and_(
+                MaintenanceRecord.status == "pending",
+                MaintenanceRecord.scheduled_date <= seven_days,
+                MaintenanceRecord.scheduled_date >= today
+            )
+        )
+    )
+    due_soon = due_soon_result.scalar() or 0
+
+    return {
+        "pending": pending,
+        "in_progress": in_progress,
+        "completed": completed,
+        "overdue": overdue,
+        "due_soon": due_soon,
+        "total": pending + in_progress + completed
+    }
+
+
 @router.get("/upcoming", response_model=List[MaintenanceResponse])
 async def get_upcoming_maintenance(
     db: DB,
@@ -188,6 +247,7 @@ async def get_maintenance(
 
 
 @router.put("/{maintenance_id}", response_model=MaintenanceResponse)
+@router.patch("/{maintenance_id}", response_model=MaintenanceResponse)
 async def update_maintenance(
     maintenance_id: UUID,
     maintenance_data: MaintenanceUpdate,

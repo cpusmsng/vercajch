@@ -34,26 +34,26 @@ data class Department(
 data class Equipment(
     val id: String,
     val name: String,
-    @SerialName("internal_code") val internalCode: String,
-    @SerialName("serial_number") val serialNumber: String?,
-    val manufacturer: String?,
-    @SerialName("model_name") val modelName: String?,
-    val description: String?,
-    val status: String,
-    val condition: String,
-    @SerialName("photo_url") val photoUrl: String?,
-    @SerialName("requires_calibration") val requiresCalibration: Boolean,
-    @SerialName("calibration_interval_days") val calibrationIntervalDays: Int?,
-    @SerialName("last_calibration_date") val lastCalibrationDate: String?,
-    @SerialName("next_calibration_date") val nextCalibrationDate: String?,
-    @SerialName("calibration_status") val calibrationStatus: String?,
-    val category: Category?,
-    @SerialName("current_location") val currentLocation: Location?,
-    @SerialName("current_holder") val currentHolder: User?,
-    @SerialName("purchase_date") val purchaseDate: String?,
-    @SerialName("purchase_price") val purchasePrice: Double?,
-    @SerialName("current_value") val currentValue: Double?,
-    val tags: List<EquipmentTag>?
+    @SerialName("internal_code") val internalCode: String = "",
+    @SerialName("serial_number") val serialNumber: String? = null,
+    val manufacturer: String? = null,
+    @SerialName("model_name") val modelName: String? = null,
+    val description: String? = null,
+    val status: String = "available",
+    val condition: String = "good",
+    @SerialName("photo_url") val photoUrl: String? = null,
+    @SerialName("requires_calibration") val requiresCalibration: Boolean = false,
+    @SerialName("calibration_interval_days") val calibrationIntervalDays: Int? = null,
+    @SerialName("last_calibration_date") val lastCalibrationDate: String? = null,
+    @SerialName("next_calibration_date") val nextCalibrationDate: String? = null,
+    @SerialName("calibration_status") val calibrationStatus: String? = null,
+    val category: Category? = null,
+    @SerialName("current_location") val currentLocation: Location? = null,
+    @SerialName("current_holder") val currentHolder: User? = null,
+    @SerialName("purchase_date") val purchaseDate: String? = null,
+    @SerialName("purchase_price") val purchasePrice: Double? = null,
+    @SerialName("current_value") val currentValue: Double? = null,
+    val tags: List<EquipmentTag> = emptyList()
 )
 
 @Serializable
@@ -67,20 +67,22 @@ data class EquipmentTag(
 data class Category(
     val id: String,
     val name: String,
-    val description: String?,
-    val color: String?,
-    @SerialName("requires_calibration") val requiresCalibration: Boolean,
-    @SerialName("default_calibration_interval_days") val defaultCalibrationIntervalDays: Int?
+    val code: String? = null,
+    val description: String? = null,
+    val color: String? = null,
+    @SerialName("requires_certification") val requiresCertification: Boolean = false,
+    @SerialName("default_maintenance_interval_days") val defaultMaintenanceIntervalDays: Int? = null
 )
 
 @Serializable
 data class Location(
     val id: String,
     val name: String,
-    val code: String?,
-    val address: String?,
-    @SerialName("gps_lat") val gpsLat: Double?,
-    @SerialName("gps_lng") val gpsLng: Double?
+    val type: String? = null,
+    val code: String? = null,
+    val address: String? = null,
+    @SerialName("gps_lat") val gpsLat: Double? = null,
+    @SerialName("gps_lng") val gpsLng: Double? = null
 )
 
 @Serializable

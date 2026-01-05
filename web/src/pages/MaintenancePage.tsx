@@ -421,7 +421,8 @@ function MaintenanceModal({
 }) {
   const [formData, setFormData] = useState({
     equipment_id: '',
-    maintenance_type: 'preventive',
+    type: 'scheduled',
+    title: '',
     description: '',
     scheduled_date: '',
     notes: '',
@@ -514,16 +515,32 @@ function MaintenanceModal({
                 Typ údržby
               </label>
               <select
-                value={formData.maintenance_type}
+                value={formData.type}
                 onChange={(e) =>
-                  setFormData({ ...formData, maintenance_type: e.target.value })
+                  setFormData({ ...formData, type: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
-                <option value="preventive">Preventívna</option>
-                <option value="corrective">Oprava</option>
+                <option value="scheduled">Plánovaná</option>
+                <option value="repair">Oprava</option>
                 <option value="inspection">Kontrola</option>
+                <option value="calibration">Kalibrácia</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Názov
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="Napr. Ročná kontrola"
+              />
             </div>
 
             <div>
@@ -537,7 +554,6 @@ function MaintenanceModal({
                 }
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                required
               />
             </div>
 

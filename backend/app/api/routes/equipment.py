@@ -114,6 +114,61 @@ async def create_equipment(
     return EquipmentResponse.model_validate(equipment)
 
 
+@router.get("/new")
+async def get_new_equipment_defaults(
+    db: DB,
+    current_user: CurrentUser,
+):
+    """Get default values for new equipment form"""
+    return {
+        "id": None,
+        "name": "",
+        "internal_code": None,
+        "serial_number": None,
+        "category_id": None,
+        "category": None,
+        "manufacturer_id": None,
+        "model_id": None,
+        "current_location_id": None,
+        "current_location": None,
+        "current_holder_id": None,
+        "current_holder": None,
+        "status": "available",
+        "condition": "good",
+        "purchase_date": None,
+        "purchase_price": None,
+        "current_value": None,
+        "warranty_expires_at": None,
+        "requires_calibration": False,
+        "last_calibration_date": None,
+        "next_calibration_date": None,
+        "calibration_status": None,
+        "requires_maintenance": False,
+        "last_maintenance_date": None,
+        "next_maintenance_date": None,
+        "is_transferable": True,
+        "transfer_requires_approval": False,
+        "description": None,
+        "notes": None,
+        "tags": [],
+        "photos": [],
+        "created_at": None,
+        "updated_at": None
+    }
+
+
+@router.get("/new/history")
+async def get_new_equipment_history(
+    db: DB,
+    current_user: CurrentUser,
+):
+    """Get history for new equipment (empty)"""
+    return {
+        "checkouts": [],
+        "maintenance": []
+    }
+
+
 @router.get("/{equipment_id}", response_model=EquipmentResponse)
 async def get_equipment(
     equipment_id: UUID,
@@ -144,6 +199,7 @@ async def get_equipment(
 
 
 @router.put("/{equipment_id}", response_model=EquipmentResponse)
+@router.patch("/{equipment_id}", response_model=EquipmentResponse)
 async def update_equipment(
     equipment_id: UUID,
     equipment_data: EquipmentUpdate,

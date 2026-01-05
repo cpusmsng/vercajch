@@ -36,11 +36,9 @@ import java.util.concurrent.Executors
 @Composable
 fun ScannerScreen(
     onEquipmentFound: (String) -> Unit,
-    onNewEquipment: (String) -> Unit,
     onBack: () -> Unit,
     viewModel: ScannerViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     val uiState by viewModel.uiState.collectAsState()
@@ -51,12 +49,6 @@ fun ScannerScreen(
     LaunchedEffect(uiState.equipmentId) {
         uiState.equipmentId?.let { id ->
             onEquipmentFound(id)
-        }
-    }
-
-    LaunchedEffect(uiState.newTagValue) {
-        uiState.newTagValue?.let { tagValue ->
-            onNewEquipment(tagValue)
         }
     }
 
@@ -231,6 +223,30 @@ fun ScannerScreen(
                                     text = uiState.error!!,
                                     color = MaterialTheme.colorScheme.error
                                 )
+                            } else if (uiState.notFoundMessage != null) {
+                                // Tag not linked to any equipment
+                                Icon(
+                                    Icons.Default.Info,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.tertiary,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Text(
+                                    text = uiState.notFoundMessage!!,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = "Pre pridanie nového náradia použite sekciu Náradie",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                                OutlinedButton(
+                                    onClick = { viewModel.resetState() }
+                                ) {
+                                    Text("Skenovať znova")
+                                }
                             } else if (uiState.nfcTagInfo != null) {
                                 // NFC tag was scanned
                                 Row(

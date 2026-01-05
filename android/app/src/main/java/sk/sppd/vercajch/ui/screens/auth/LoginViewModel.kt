@@ -26,6 +26,7 @@ class LoginViewModel @Inject constructor(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     val isLoggedIn: Flow<Boolean> = authRepository.isLoggedIn
+    val currentUser = authRepository.currentUser
 
     fun login(email: String, password: String) {
         viewModelScope.launch {

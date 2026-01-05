@@ -11,12 +11,14 @@ import sk.sppd.vercajch.BuildConfig
 import sk.sppd.vercajch.MainActivity
 import sk.sppd.vercajch.data.repository.EquipmentRepository
 import sk.sppd.vercajch.util.NfcTagInfo
+import sk.sppd.vercajch.util.SoundManager
 import javax.inject.Inject
 
 data class ScannerUiState(
     val isLoading: Boolean = false,
     val equipmentId: String? = null,
-    val newTagValue: String? = null,
+    val notFoundMessage: String? = null,
+    val scannedTagValue: String? = null,
     val error: String? = null,
     val lastScannedValue: String? = null,
     val nfcTagInfo: NfcTagInfo? = null
@@ -24,7 +26,8 @@ data class ScannerUiState(
 
 @HiltViewModel
 class ScannerViewModel @Inject constructor(
-    private val equipmentRepository: EquipmentRepository
+    private val equipmentRepository: EquipmentRepository,
+    private val soundManager: SoundManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ScannerUiState())
@@ -75,6 +78,9 @@ class ScannerViewModel @Inject constructor(
             return
         }
 
+        // Play NFC detection sound immediately
+        soundManager.playNfcSound()
+
         isProcessing = true
         _uiState.value = ScannerUiState(
             isLoading = true,
@@ -95,19 +101,26 @@ class ScannerViewModel @Inject constructor(
         equipmentRepository.lookupTag(tagValue)
             .onSuccess { response ->
                 if (response.found && response.equipment != null) {
+                    // Play success sound when equipment is found
+                    soundManager.playSuccessSound()
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         equipmentId = response.equipment.id
                     )
                 } else {
-                    // New equipment - start onboarding
+                    // Tag not linked to any equipment - show info message
+                    // Don't trigger onboarding from scanner, user must use Equipment section
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        newTagValue = tagValue
+                        notFoundMessage = "Tento tag nie je priradený žiadnemu náradiu",
+                        scannedTagValue = tagValue
                     )
                 }
             }
             .onFailure { exception ->
+                // Play error sound on failure
+                soundManager.playErrorSound()
+
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = exception.message ?: "Vyhľadávanie zlyhalo"

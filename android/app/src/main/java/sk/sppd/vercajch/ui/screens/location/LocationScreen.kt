@@ -27,6 +27,7 @@ import sk.sppd.vercajch.util.BeaconType
 @Composable
 fun LocationScreen(
     onBack: () -> Unit,
+    onBeaconClick: (BeaconInfo) -> Unit = {},
     viewModel: LocationViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -241,7 +242,10 @@ fun LocationScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(uiState.nearbyBeacons) { beacon ->
-                            BeaconCard(beacon = beacon)
+                            BeaconCard(
+                                beacon = beacon,
+                                onClick = { onBeaconClick(beacon) }
+                            )
                         }
                     }
                 }
@@ -251,10 +255,14 @@ fun LocationScreen(
 }
 
 @Composable
-fun BeaconCard(beacon: BeaconInfo) {
+fun BeaconCard(
+    beacon: BeaconInfo,
+    onClick: () -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier

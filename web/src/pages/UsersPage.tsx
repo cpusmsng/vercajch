@@ -214,7 +214,7 @@ export default function UsersPage() {
                             {user.full_name}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {user.employee_id}
+                            {user.employee_number}
                           </div>
                         </div>
                       </div>
@@ -362,7 +362,7 @@ function UserModal({
   const [formData, setFormData] = useState({
     email: user?.email || '',
     full_name: user?.full_name || '',
-    employee_id: user?.employee_id || '',
+    employee_number: user?.employee_number || '',
     phone: user?.phone || '',
     role_id: user?.role_id || '',
     department_id: user?.department_id || '',
@@ -377,9 +377,16 @@ function UserModal({
     setError('')
 
     try {
-      const payload = { ...formData }
-      if (!payload.password) {
-        delete (payload as any).password
+      const payload: Record<string, any> = {
+        email: formData.email,
+        full_name: formData.full_name,
+        employee_number: formData.employee_number || null,
+        phone: formData.phone || null,
+        role_id: formData.role_id || null,
+        department_id: formData.department_id || null,
+      }
+      if (formData.password) {
+        payload.password = formData.password
       }
 
       if (user) {
@@ -457,9 +464,9 @@ function UserModal({
                 </label>
                 <input
                   type="text"
-                  value={formData.employee_id}
+                  value={formData.employee_number}
                   onChange={(e) =>
-                    setFormData({ ...formData, employee_id: e.target.value })
+                    setFormData({ ...formData, employee_number: e.target.value })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
