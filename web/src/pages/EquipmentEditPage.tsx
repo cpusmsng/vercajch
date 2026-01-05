@@ -1,9 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../services/api'
 import type { Equipment, Category, Location } from '../types'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from 'lucide-react'
+
+interface EquipmentPhoto {
+  id: string
+  photo_type: string
+  file_url: string
+  thumbnail_url?: string
+  description?: string
+}
 
 export default function EquipmentEditPage() {
   const { id } = useParams<{ id: string }>()
@@ -56,6 +64,58 @@ export default function EquipmentEditPage() {
       return response.data.items
     },
   })
+
+  const { data: photos, refetch: refetchPhotos } = useQuery({
+    queryKey: ['equipment-photos', id],
+    queryFn: async () => {
+      const response = await api.get<EquipmentPhoto[]>(`/equipment/${id}/photos`)
+      return response.data
+    },
+    enabled: !isNew && !!id,
+  })
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
+
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('photo_type', 'general')
+      return api.post(`/equipment/${id}/photos`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+    },
+    onSuccess: () => {
+      refetchPhotos()
+    },
+  })
+
+  const deletePhotoMutation = useMutation({
+    mutationFn: async (photoId: string) => {
+      return api.delete(`/equipment/${id}/photos/${photoId}`)
+    },
+    onSuccess: () => {
+      refetchPhotos()
+    },
+  })
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingPhotos(true)
+    try {
+      for (const file of Array.from(files)) {
+        await uploadPhotoMutation.mutateAsync(file)
+      }
+    } finally {
+      setUploadingPhotos(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
 
   useEffect(() => {
     if (equipment) {
@@ -419,6 +479,63 @@ export default function EquipmentEditPage() {
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
+
+        {!isNew && (
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Fotografie</h2>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingPhotos}
+                className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {uploadingPhotos ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                Nahrať fotografie
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </div>
+
+            {photos && photos.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {photos.map((photo) => (
+                  <div key={photo.id} className="relative group">
+                    <img
+                      src={photo.thumbnail_url || photo.file_url}
+                      alt={photo.description || 'Fotografia náradia'}
+                      className="w-full h-32 object-cover rounded-lg border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => deletePhotoMutation.mutate(photo.id)}
+                      disabled={deletePhotoMutation.isPending}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-400 border-2 border-dashed rounded-lg">
+                <ImageIcon className="h-12 w-12 mb-2" />
+                <p className="text-sm">Žiadne fotografie</p>
+                <p className="text-xs">Kliknite na tlačidlo vyššie pre nahratie</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {saveMutation.error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">

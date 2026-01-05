@@ -65,8 +65,8 @@ class CategoryBasic(BaseSchema):
     code: Optional[str] = None
     description: Optional[str] = None
     color: Optional[str] = None
-    requires_calibration: bool = Field(default=False, validation_alias="requires_certification")
-    default_calibration_interval_days: Optional[int] = Field(default=None, validation_alias="default_maintenance_interval_days")
+    requires_certification: bool = Field(default=False)
+    default_maintenance_interval_days: Optional[int] = Field(default=None)
 
 
 class LocationBasic(BaseSchema):

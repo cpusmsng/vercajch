@@ -110,6 +110,7 @@ async def get_category(
 
 
 @router.put("/{category_id}", response_model=CategoryResponse)
+@router.patch("/{category_id}", response_model=CategoryResponse)
 async def update_category(
     category_id: UUID,
     category_data: CategoryUpdate,

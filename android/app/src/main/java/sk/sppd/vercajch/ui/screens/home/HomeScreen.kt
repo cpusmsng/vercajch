@@ -29,11 +29,23 @@ fun HomeScreen(
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
+    val currentUser by loginViewModel.currentUser.collectAsState(initial = null)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Vercajch") },
+                title = {
+                    Column {
+                        Text("Vercajch")
+                        currentUser?.fullName?.let { name ->
+                            Text(
+                                text = name,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
@@ -65,7 +77,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Vitajte!",
+                text = currentUser?.fullName?.let { "Vitajte, $it!" } ?: "Vitajte!",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )

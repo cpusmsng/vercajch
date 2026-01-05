@@ -199,6 +199,7 @@ async def get_equipment(
 
 
 @router.put("/{equipment_id}", response_model=EquipmentResponse)
+@router.patch("/{equipment_id}", response_model=EquipmentResponse)
 async def update_equipment(
     equipment_id: UUID,
     equipment_data: EquipmentUpdate,

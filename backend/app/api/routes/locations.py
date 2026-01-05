@@ -114,6 +114,7 @@ async def get_location(
 
 
 @router.put("/{location_id}", response_model=LocationResponse)
+@router.patch("/{location_id}", response_model=LocationResponse)
 async def update_location(
     location_id: UUID,
     location_data: LocationUpdate,

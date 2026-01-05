@@ -70,8 +70,8 @@ data class Category(
     val code: String? = null,
     val description: String? = null,
     val color: String? = null,
-    @SerialName("requires_calibration") val requiresCalibration: Boolean = false,
-    @SerialName("default_calibration_interval_days") val defaultCalibrationIntervalDays: Int? = null
+    @SerialName("requires_certification") val requiresCertification: Boolean = false,
+    @SerialName("default_maintenance_interval_days") val defaultMaintenanceIntervalDays: Int? = null
 )
 
 @Serializable

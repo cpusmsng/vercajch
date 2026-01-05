@@ -111,11 +111,6 @@ fun VercajchNavHost() {
                         popUpTo(Screen.Scanner.route) { inclusive = true }
                     }
                 },
-                onNewEquipment = { tagValue ->
-                    navController.navigate(Screen.Onboarding.createRoute(tagValue)) {
-                        popUpTo(Screen.Scanner.route) { inclusive = true }
-                    }
-                },
                 onBack = { navController.popBackStack() }
             )
         }
@@ -124,6 +119,10 @@ fun VercajchNavHost() {
             EquipmentListScreen(
                 onEquipmentClick = { id ->
                     navController.navigate(Screen.EquipmentDetail.createRoute(id))
+                },
+                onAddEquipment = {
+                    // Navigate to onboarding without a pre-scanned tag
+                    navController.navigate(Screen.Onboarding.createRoute())
                 },
                 onBack = { navController.popBackStack() }
             )

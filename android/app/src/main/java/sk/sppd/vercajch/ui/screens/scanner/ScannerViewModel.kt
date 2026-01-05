@@ -17,7 +17,8 @@ import javax.inject.Inject
 data class ScannerUiState(
     val isLoading: Boolean = false,
     val equipmentId: String? = null,
-    val newTagValue: String? = null,
+    val notFoundMessage: String? = null,
+    val scannedTagValue: String? = null,
     val error: String? = null,
     val lastScannedValue: String? = null,
     val nfcTagInfo: NfcTagInfo? = null
@@ -99,19 +100,20 @@ class ScannerViewModel @Inject constructor(
     private suspend fun lookupTag(tagValue: String) {
         equipmentRepository.lookupTag(tagValue)
             .onSuccess { response ->
-                // Play success sound on any successful scan
-                soundManager.playSuccessSound()
-
                 if (response.found && response.equipment != null) {
+                    // Play success sound when equipment is found
+                    soundManager.playSuccessSound()
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         equipmentId = response.equipment.id
                     )
                 } else {
-                    // New equipment - start onboarding
+                    // Tag not linked to any equipment - show info message
+                    // Don't trigger onboarding from scanner, user must use Equipment section
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        newTagValue = tagValue
+                        notFoundMessage = "Tento tag nie je priradený žiadnemu náradiu",
+                        scannedTagValue = tagValue
                     )
                 }
             }
