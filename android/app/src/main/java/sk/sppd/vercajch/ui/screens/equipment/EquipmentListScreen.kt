@@ -9,11 +9,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -123,10 +125,26 @@ fun EquipmentListScreen(
                 }
 
                 else -> {
-                    PullToRefreshBox(
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = { viewModel.refresh() },
-                        modifier = Modifier.fillMaxSize()
+                    val pullToRefreshState = rememberPullToRefreshState()
+
+                    // Handle refresh
+                    LaunchedEffect(pullToRefreshState.isRefreshing) {
+                        if (pullToRefreshState.isRefreshing) {
+                            viewModel.refresh()
+                        }
+                    }
+
+                    // End refreshing when done
+                    LaunchedEffect(uiState.isRefreshing) {
+                        if (!uiState.isRefreshing) {
+                            pullToRefreshState.endRefresh()
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(pullToRefreshState.nestedScrollConnection)
                     ) {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
@@ -159,6 +177,11 @@ fun EquipmentListScreen(
                                 }
                             }
                         }
+
+                        PullToRefreshContainer(
+                            state = pullToRefreshState,
+                            modifier = Modifier.align(Alignment.TopCenter)
+                        )
                     }
                 }
             }
