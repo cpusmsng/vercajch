@@ -15,6 +15,7 @@ from .maintenance import router as maintenance_router
 from .notifications import router as notifications_router
 from .reports import router as reports_router
 from .settings import router as settings_router
+from .websocket import router as websocket_router
 
 api_router = APIRouter()
 
@@ -33,3 +34,4 @@ api_router.include_router(maintenance_router, prefix="/maintenance", tags=["Main
 api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(reports_router, prefix="/reports", tags=["Reports"])
 api_router.include_router(settings_router, prefix="/settings", tags=["Settings"])
+api_router.include_router(websocket_router, tags=["WebSocket"])

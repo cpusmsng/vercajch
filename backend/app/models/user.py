@@ -99,6 +99,9 @@ class User(Base):
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
     last_login_platform: Mapped[Optional[str]] = mapped_column(String(20))
 
+    # Versioning for conflict detection
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=datetime.utcnow)
 

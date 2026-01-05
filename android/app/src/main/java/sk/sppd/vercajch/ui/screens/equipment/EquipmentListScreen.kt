@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,9 +30,14 @@ fun EquipmentListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    var previousSearchQuery by remember { mutableStateOf("") }
 
+    // Only trigger search when query actually changes (not on initial composition)
     LaunchedEffect(searchQuery) {
-        viewModel.search(searchQuery)
+        if (searchQuery != previousSearchQuery) {
+            previousSearchQuery = searchQuery
+            viewModel.search(searchQuery)
+        }
     }
 
     Scaffold(
@@ -117,31 +123,37 @@ fun EquipmentListScreen(
                 }
 
                 else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = { viewModel.refresh() },
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        items(uiState.equipment) { equipment ->
-                            EquipmentListItem(
-                                equipment = equipment,
-                                onClick = { onEquipmentClick(equipment.id) }
-                            )
-                        }
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(uiState.equipment) { equipment ->
+                                EquipmentListItem(
+                                    equipment = equipment,
+                                    onClick = { onEquipmentClick(equipment.id) }
+                                )
+                            }
 
-                        if (uiState.hasMore) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (uiState.isLoading) {
-                                        CircularProgressIndicator()
-                                    } else {
-                                        TextButton(onClick = { viewModel.loadMore() }) {
-                                            Text("Načítať viac")
+                            if (uiState.hasMore) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (uiState.isLoading) {
+                                            CircularProgressIndicator()
+                                        } else {
+                                            TextButton(onClick = { viewModel.loadMore() }) {
+                                                Text("Načítať viac")
+                                            }
                                         }
                                     }
                                 }

@@ -98,6 +98,7 @@ export interface Equipment {
   next_calibration_date?: string
   calibration_status?: 'valid' | 'expiring' | 'expired' | 'not_required'
   notes?: string
+  version: number
   created_at: string
   updated_at?: string
   tags?: EquipmentTag[]

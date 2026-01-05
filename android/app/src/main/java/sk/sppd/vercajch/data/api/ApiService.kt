@@ -38,6 +38,12 @@ interface ApiService {
     @GET("equipment/{id}/history")
     suspend fun getEquipmentHistory(@Path("id") id: String): Map<String, Any>
 
+    @PUT("equipment/{id}")
+    suspend fun updateEquipment(
+        @Path("id") id: String,
+        @Body update: EquipmentUpdate
+    ): retrofit2.Response<Equipment>
+
     // Tags
     @GET("tags/lookup")
     suspend fun lookupTag(@Query("value") value: String): TagLookupResponse

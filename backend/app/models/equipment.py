@@ -55,6 +55,10 @@ class Location(Base):
     )
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Versioning for conflict detection
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -168,6 +172,9 @@ class Equipment(Base):
 
     notes: Mapped[Optional[str]] = mapped_column(Text)
     custom_fields: Mapped[Optional[dict]] = mapped_column(JSONB)
+
+    # Versioning for conflict detection
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=datetime.utcnow)

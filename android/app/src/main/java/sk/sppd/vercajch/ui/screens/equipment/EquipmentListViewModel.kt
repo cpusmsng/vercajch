@@ -15,10 +15,12 @@ import javax.inject.Inject
 
 data class EquipmentListUiState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val equipment: List<Equipment> = emptyList(),
     val error: String? = null,
     val currentPage: Int = 1,
-    val hasMore: Boolean = false
+    val hasMore: Boolean = false,
+    val searchQuery: String = ""
 )
 
 @HiltViewModel
@@ -30,35 +32,57 @@ class EquipmentListViewModel @Inject constructor(
     val uiState: StateFlow<EquipmentListUiState> = _uiState.asStateFlow()
 
     private var searchJob: Job? = null
-    private var currentSearchQuery: String? = null
+    private var isInitialized = false
 
     init {
         loadEquipment()
     }
 
     fun search(query: String) {
+        // Skip if query hasn't changed
+        if (query == _uiState.value.searchQuery && isInitialized) return
+
         searchJob?.cancel()
-        currentSearchQuery = query.takeIf { it.isNotBlank() }
 
         searchJob = viewModelScope.launch {
             delay(300) // Debounce
-            _uiState.value = _uiState.value.copy(currentPage = 1, equipment = emptyList())
-            loadEquipment()
+            _uiState.value = _uiState.value.copy(
+                searchQuery = query,
+                currentPage = 1
+            )
+            loadEquipmentInternal(clearList = true)
         }
     }
 
     fun loadEquipment() {
+        loadEquipmentInternal(clearList = false)
+    }
+
+    fun refresh() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(isRefreshing = true, currentPage = 1)
+            loadEquipmentInternal(clearList = true, isRefresh = true)
+        }
+    }
+
+    private fun loadEquipmentInternal(clearList: Boolean = false, isRefresh: Boolean = false) {
+        viewModelScope.launch {
+            if (!isRefresh) {
+                _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            }
+
+            val searchQuery = _uiState.value.searchQuery.takeIf { it.isNotBlank() }
 
             equipmentRepository.getEquipment(
                 page = _uiState.value.currentPage,
-                search = currentSearchQuery
+                search = searchQuery
             )
                 .onSuccess { response ->
+                    isInitialized = true
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        equipment = if (_uiState.value.currentPage == 1) {
+                        isRefreshing = false,
+                        equipment = if (clearList || _uiState.value.currentPage == 1) {
                             response.items
                         } else {
                             _uiState.value.equipment + response.items
@@ -69,6 +93,7 @@ class EquipmentListViewModel @Inject constructor(
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
+                        isRefreshing = false,
                         error = exception.message ?: "Načítanie zlyhalo"
                     )
                 }
@@ -79,6 +104,6 @@ class EquipmentListViewModel @Inject constructor(
         if (_uiState.value.isLoading || !_uiState.value.hasMore) return
 
         _uiState.value = _uiState.value.copy(currentPage = _uiState.value.currentPage + 1)
-        loadEquipment()
+        loadEquipmentInternal(clearList = false)
     }
 }

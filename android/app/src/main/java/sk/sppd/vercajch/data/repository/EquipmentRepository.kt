@@ -76,4 +76,32 @@ class EquipmentRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun updateEquipment(id: String, update: EquipmentUpdate): UpdateResult<Equipment> {
+        return try {
+            val response = apiService.updateEquipment(id, update)
+            when {
+                response.isSuccessful -> {
+                    response.body()?.let {
+                        UpdateResult.Success(it)
+                    } ?: UpdateResult.Error("Empty response body")
+                }
+                response.code() == 409 -> {
+                    // Conflict - parse error details
+                    val errorBody = response.errorBody()?.string() ?: ""
+                    // Try to extract version info from error
+                    UpdateResult.Conflict(
+                        message = "Náradie bolo medzičasom upravené iným používateľom. Obnovte dáta a skúste znova.",
+                        currentVersion = update.version ?: 0,
+                        yourVersion = update.version ?: 0
+                    )
+                }
+                else -> {
+                    UpdateResult.Error("Update failed: ${response.code()}")
+                }
+            }
+        } catch (e: Exception) {
+            UpdateResult.Error(e.message ?: "Unknown error")
+        }
+    }
 }

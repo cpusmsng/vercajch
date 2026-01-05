@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../services/api'
 import type { Equipment, Category, Location } from '../types'
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, AlertTriangle, RefreshCw } from 'lucide-react'
+import { useEquipmentWebSocket } from '../hooks/useWebSocket'
+import { AxiosError } from 'axios'
 
 interface EquipmentPhoto {
   id: string
@@ -38,7 +40,13 @@ export default function EquipmentEditPage() {
     current_value: '',
     warranty_expiry: '',
     notes: '',
+    version: 1,
   })
+
+  // Conflict detection state
+  const [conflictDetected, setConflictDetected] = useState(false)
+  const [conflictMessage, setConflictMessage] = useState('')
+  const [serverVersion, setServerVersion] = useState<number | null>(null)
 
   const { data: equipment, isLoading } = useQuery({
     queryKey: ['equipment', id],
@@ -73,6 +81,30 @@ export default function EquipmentEditPage() {
     },
     enabled: !isNew && !!id,
   })
+
+  // WebSocket for real-time conflict detection
+  const handleWebSocketUpdate = useCallback((data: Record<string, unknown>) => {
+    const newVersion = data.version as number
+    if (newVersion && newVersion > formData.version) {
+      setConflictDetected(true)
+      setConflictMessage('Toto náradie bolo medzičasom upravené iným používateľom.')
+      setServerVersion(newVersion)
+    }
+  }, [formData.version])
+
+  const { latestVersion } = useEquipmentWebSocket(
+    isNew ? undefined : id,
+    handleWebSocketUpdate
+  )
+
+  // Check for real-time updates
+  useEffect(() => {
+    if (latestVersion && latestVersion > formData.version) {
+      setConflictDetected(true)
+      setConflictMessage('Toto náradie bolo medzičasom upravené iným používateľom.')
+      setServerVersion(latestVersion)
+    }
+  }, [latestVersion, formData.version])
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
@@ -138,7 +170,12 @@ export default function EquipmentEditPage() {
         current_value: equipment.current_value?.toString() || '',
         warranty_expiry: equipment.warranty_expiry || '',
         notes: equipment.notes || '',
+        version: equipment.version || 1,
       })
+      // Reset conflict state when equipment is loaded/refreshed
+      setConflictDetected(false)
+      setConflictMessage('')
+      setServerVersion(null)
     }
   }, [equipment])
 
@@ -153,6 +190,8 @@ export default function EquipmentEditPage() {
         current_value: data.current_value ? parseFloat(data.current_value) : null,
         purchase_date: data.purchase_date || null,
         warranty_expiry: data.warranty_expiry || null,
+        // Include version for optimistic locking
+        version: isNew ? undefined : data.version,
       }
 
       if (isNew) {
@@ -165,7 +204,23 @@ export default function EquipmentEditPage() {
       queryClient.invalidateQueries({ queryKey: ['equipment'] })
       navigate(isNew ? '/equipment' : `/equipment/${id}`)
     },
+    onError: (error: AxiosError<{ detail: { error: string; message: string; current_version: number } }>) => {
+      if (error.response?.status === 409) {
+        const detail = error.response.data?.detail
+        setConflictDetected(true)
+        setConflictMessage(detail?.message || 'Konflikt: Náradie bolo medzičasom upravené iným používateľom.')
+        setServerVersion(detail?.current_version || null)
+      }
+    },
   })
+
+  // Function to refresh data and resolve conflict
+  const handleRefreshData = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['equipment', id] })
+    setConflictDetected(false)
+    setConflictMessage('')
+    setServerVersion(null)
+  }, [queryClient, id])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -537,7 +592,31 @@ export default function EquipmentEditPage() {
           </div>
         )}
 
-        {saveMutation.error && (
+        {/* Conflict warning banner */}
+        {conflictDetected && (
+          <div className="bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-lg flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-medium">Konflikt zistený</p>
+              <p className="text-sm mt-1">{conflictMessage}</p>
+              {serverVersion && (
+                <p className="text-xs mt-1 text-amber-600">
+                  Vaša verzia: {formData.version}, Aktuálna verzia na serveri: {serverVersion}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleRefreshData}
+              className="px-3 py-1.5 text-sm bg-amber-100 hover:bg-amber-200 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Obnoviť dáta
+            </button>
+          </div>
+        )}
+
+        {saveMutation.error && !conflictDetected && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             Chyba pri ukladaní. Skúste to znova.
           </div>

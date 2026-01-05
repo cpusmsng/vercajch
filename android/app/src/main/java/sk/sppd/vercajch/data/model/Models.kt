@@ -53,7 +53,9 @@ data class Equipment(
     @SerialName("purchase_date") val purchaseDate: String? = null,
     @SerialName("purchase_price") val purchasePrice: Double? = null,
     @SerialName("current_value") val currentValue: Double? = null,
-    val tags: List<EquipmentTag> = emptyList()
+    val tags: List<EquipmentTag> = emptyList(),
+    // Version for optimistic locking
+    val version: Int = 1
 )
 
 @Serializable
@@ -213,3 +215,36 @@ data class TagLookupResponse(
     @SerialName("tag_type") val tagType: String?,
     @SerialName("tag_value") val tagValue: String?
 )
+
+@Serializable
+data class EquipmentUpdate(
+    val name: String? = null,
+    val description: String? = null,
+    @SerialName("category_id") val categoryId: String? = null,
+    @SerialName("serial_number") val serialNumber: String? = null,
+    @SerialName("internal_code") val internalCode: String? = null,
+    val manufacturer: String? = null,
+    @SerialName("model_name") val modelName: String? = null,
+    val condition: String? = null,
+    val status: String? = null,
+    @SerialName("current_location_id") val currentLocationId: String? = null,
+    val notes: String? = null,
+    // Version for optimistic locking
+    val version: Int? = null
+)
+
+// Conflict error response
+@Serializable
+data class ConflictErrorDetail(
+    val error: String,
+    val message: String,
+    @SerialName("current_version") val currentVersion: Int,
+    @SerialName("your_version") val yourVersion: Int
+)
+
+// Sealed class for API results with conflict support
+sealed class UpdateResult<out T> {
+    data class Success<T>(val data: T) : UpdateResult<T>()
+    data class Error(val message: String) : UpdateResult<Nothing>()
+    data class Conflict(val message: String, val currentVersion: Int, val yourVersion: Int) : UpdateResult<Nothing>()
+}

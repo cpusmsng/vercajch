@@ -1,12 +1,14 @@
+import asyncio
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File
+from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File, BackgroundTasks
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import DB, CurrentUser, ManagerUser, AdminUser
 from app.core.permissions import Permission
+from app.core.websocket import manager, EventType, create_notification
 from app.models.equipment import Equipment, EquipmentPhoto, EquipmentTag, Category, Location
 from app.models.user import User
 from app.schemas.equipment import (
@@ -205,10 +207,19 @@ async def update_equipment(
     equipment_data: EquipmentUpdate,
     db: DB,
     current_user: ManagerUser,
+    background_tasks: BackgroundTasks,
 ):
-    """Update equipment"""
+    """Update equipment with optimistic locking"""
     result = await db.execute(
-        select(Equipment).where(Equipment.id == equipment_id)
+        select(Equipment)
+        .options(
+            selectinload(Equipment.category),
+            selectinload(Equipment.current_location),
+            selectinload(Equipment.current_holder),
+            selectinload(Equipment.tags),
+            selectinload(Equipment.photos),
+        )
+        .where(Equipment.id == equipment_id)
     )
     equipment = result.scalar_one_or_none()
 
@@ -219,6 +230,19 @@ async def update_equipment(
         )
 
     update_data = equipment_data.model_dump(exclude_unset=True)
+
+    # Optimistic locking - check version if provided
+    client_version = update_data.pop("version", None)
+    if client_version is not None and client_version != equipment.version:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "error": "CONFLICT",
+                "message": "Equipment was modified by another user. Please refresh and try again.",
+                "current_version": equipment.version,
+                "your_version": client_version
+            }
+        )
 
     # Check internal_code uniqueness
     if "internal_code" in update_data and update_data["internal_code"] != equipment.internal_code:
@@ -234,10 +258,28 @@ async def update_equipment(
     for field, value in update_data.items():
         setattr(equipment, field, value)
 
+    # Increment version
+    equipment.version = equipment.version + 1
+
     await db.commit()
     await db.refresh(equipment)
 
-    return EquipmentResponse.model_validate(equipment)
+    response = EquipmentResponse.model_validate(equipment)
+
+    # Send WebSocket notification
+    async def send_notification():
+        notification = create_notification(
+            event_type=EventType.EQUIPMENT_UPDATED,
+            entity_type="equipment",
+            entity_id=str(equipment_id),
+            data=response.model_dump(mode="json"),
+            actor_id=str(current_user.id)
+        )
+        await manager.broadcast_to_topic(notification, "equipment")
+
+    background_tasks.add_task(asyncio.create_task, send_notification())
+
+    return response
 
 
 @router.delete("/{equipment_id}")

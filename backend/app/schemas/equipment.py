@@ -57,6 +57,8 @@ class EquipmentUpdate(BaseModel):
     calibration_interval_days: Optional[int] = None
     notes: Optional[str] = None
     custom_fields: Optional[dict] = None
+    # Version for optimistic locking - must match current version to update
+    version: Optional[int] = None
 
 
 class CategoryBasic(BaseSchema):
@@ -147,6 +149,7 @@ class EquipmentResponse(BaseSchema):
     next_calibration_date: Optional[date] = None
     calibration_status: Optional[str] = None
     notes: Optional[str] = None
+    version: int = 1
     created_at: datetime
     updated_at: Optional[datetime] = None
     tags: List[EquipmentTagResponse] = []
