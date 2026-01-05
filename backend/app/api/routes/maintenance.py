@@ -247,6 +247,7 @@ async def get_maintenance(
 
 
 @router.put("/{maintenance_id}", response_model=MaintenanceResponse)
+@router.patch("/{maintenance_id}", response_model=MaintenanceResponse)
 async def update_maintenance(
     maintenance_id: UUID,
     maintenance_data: MaintenanceUpdate,

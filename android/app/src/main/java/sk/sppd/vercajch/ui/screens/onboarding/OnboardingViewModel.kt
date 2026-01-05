@@ -120,8 +120,8 @@ class OnboardingViewModel @Inject constructor(
         val category = _uiState.value.categories.find { it.id == id }
         _uiState.value = _uiState.value.copy(
             categoryId = id,
-            requiresCalibration = category?.requiresCalibration ?: false,
-            calibrationIntervalDays = category?.defaultCalibrationIntervalDays?.toString() ?: ""
+            requiresCalibration = category?.requiresCertification ?: false,
+            calibrationIntervalDays = category?.defaultMaintenanceIntervalDays?.toString() ?: ""
         )
 
         // Load accessory types for category
