@@ -156,11 +156,26 @@ async def update_my_profile(
     )
     user = result.scalar_one()
 
+    # Optimistic locking - check version if provided
+    if profile_data.version is not None and profile_data.version != user.version:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "error": "CONFLICT",
+                "message": "Profile was modified. Please refresh and try again.",
+                "current_version": user.version,
+                "your_version": profile_data.version
+            }
+        )
+
     # Only allow updating name and phone for self-service
     if profile_data.full_name is not None:
         user.full_name = profile_data.full_name
     if profile_data.phone is not None:
         user.phone = profile_data.phone
+
+    # Increment version on update
+    user.version = user.version + 1
 
     await db.commit()
     await db.refresh(user)
@@ -201,7 +216,9 @@ async def update_user(
 ):
     """Update a user (supports both PUT and PATCH)"""
     result = await db.execute(
-        select(User).where(User.id == user_id)
+        select(User)
+        .options(selectinload(User.role), selectinload(User.department))
+        .where(User.id == user_id)
     )
     user = result.scalar_one_or_none()
 
@@ -212,6 +229,19 @@ async def update_user(
         )
 
     update_data = user_data.model_dump(exclude_unset=True)
+
+    # Optimistic locking - check version if provided
+    client_version = update_data.pop("version", None)
+    if client_version is not None and client_version != user.version:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "error": "CONFLICT",
+                "message": "User was modified by another user. Please refresh and try again.",
+                "current_version": user.version,
+                "your_version": client_version
+            }
+        )
 
     if "password" in update_data:
         update_data["password_hash"] = get_password_hash(update_data.pop("password"))
@@ -228,6 +258,9 @@ async def update_user(
 
     for field, value in update_data.items():
         setattr(user, field, value)
+
+    # Increment version on update
+    user.version = user.version + 1
 
     await db.commit()
     await db.refresh(user)

@@ -17,6 +17,7 @@ export interface User {
   last_login_at?: string
   created_at?: string
   permissions?: string[]
+  version?: number
 }
 
 export interface Role {

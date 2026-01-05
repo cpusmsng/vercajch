@@ -35,6 +35,7 @@ class UserUpdate(BaseModel):
     can_access_web: Optional[bool] = None
     can_access_mobile: Optional[bool] = None
     password: Optional[str] = None
+    version: Optional[int] = None  # For optimistic locking
 
 
 class RoleResponse(BaseSchema):
@@ -68,6 +69,7 @@ class UserResponse(BaseSchema):
     last_login_at: Optional[datetime] = None
     last_login_platform: Optional[str] = None
     created_at: datetime
+    version: int = 1
 
 
 class UserListResponse(BaseSchema):

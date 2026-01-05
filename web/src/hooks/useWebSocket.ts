@@ -18,6 +18,8 @@ interface UseWebSocketOptions {
   onDisconnect?: () => void
   autoReconnect?: boolean
   reconnectInterval?: number
+  maxReconnectAttempts?: number
+  enabled?: boolean
 }
 
 export function useWebSocket(options: UseWebSocketOptions = {}) {
@@ -28,17 +30,25 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     onDisconnect,
     autoReconnect = true,
     reconnectInterval = 5000,
+    maxReconnectAttempts = 3,
+    enabled = true,
   } = options
 
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const reconnectAttemptsRef = useRef(0)
   const [isConnected, setIsConnected] = useState(false)
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null)
 
   const accessToken = useAuthStore((state) => state.accessToken)
 
   const connect = useCallback(() => {
-    if (!accessToken) return
+    if (!accessToken || !enabled) return
+
+    // Check if we've exceeded max reconnection attempts
+    if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+      return
+    }
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const wsHost = import.meta.env.VITE_WS_URL || `${wsProtocol}//${window.location.host}`
@@ -50,6 +60,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
       ws.onopen = () => {
         setIsConnected(true)
+        reconnectAttemptsRef.current = 0 // Reset on successful connection
         onConnect?.()
 
         // Subscribe to topics
@@ -63,8 +74,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
           const message: WebSocketMessage = JSON.parse(event.data)
           setLastMessage(message)
           onMessage?.(message)
-        } catch (e) {
-          console.error('Failed to parse WebSocket message:', e)
+        } catch {
+          // Silently ignore parse errors
         }
       }
 
@@ -72,20 +83,23 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         setIsConnected(false)
         onDisconnect?.()
 
-        if (autoReconnect) {
+        if (autoReconnect && reconnectAttemptsRef.current < maxReconnectAttempts) {
+          reconnectAttemptsRef.current += 1
+          // Exponential backoff
+          const delay = reconnectInterval * Math.pow(2, reconnectAttemptsRef.current - 1)
           reconnectTimeoutRef.current = setTimeout(() => {
             connect()
-          }, reconnectInterval)
+          }, delay)
         }
       }
 
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error)
+      ws.onerror = () => {
+        // Silently handle errors - onclose will be called after this
       }
-    } catch (error) {
-      console.error('Failed to create WebSocket connection:', error)
+    } catch {
+      // Failed to create WebSocket - silently fail
     }
-  }, [accessToken, topics, onMessage, onConnect, onDisconnect, autoReconnect, reconnectInterval])
+  }, [accessToken, topics, onMessage, onConnect, onDisconnect, autoReconnect, reconnectInterval, maxReconnectAttempts, enabled])
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
