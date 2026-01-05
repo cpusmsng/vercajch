@@ -1,4 +1,3 @@
-import asyncio
 from typing import List, Optional
 from uuid import UUID
 
@@ -266,18 +265,15 @@ async def update_equipment(
 
     response = EquipmentResponse.model_validate(equipment)
 
-    # Send WebSocket notification
-    async def send_notification():
-        notification = create_notification(
-            event_type=EventType.EQUIPMENT_UPDATED,
-            entity_type="equipment",
-            entity_id=str(equipment_id),
-            data=response.model_dump(mode="json"),
-            actor_id=str(current_user.id)
-        )
-        await manager.broadcast_to_topic(notification, "equipment")
-
-    background_tasks.add_task(asyncio.create_task, send_notification())
+    # Send WebSocket notification in background
+    notification = create_notification(
+        event_type=EventType.EQUIPMENT_UPDATED,
+        entity_type="equipment",
+        entity_id=str(equipment_id),
+        data=response.model_dump(mode="json"),
+        actor_id=str(current_user.id)
+    )
+    background_tasks.add_task(manager.broadcast_to_topic, notification, "equipment")
 
     return response
 
